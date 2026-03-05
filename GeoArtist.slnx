@@ -1,5 +1,5 @@
 <Solution>
   <Project Path="Core/Core.csproj" />
-  <Project Path="RazorComponent/RazorComponent.csproj" Id="36d752f8-048b-4174-b4bc-3ee9364f4b7a" />
+  <Project Path="RazorComponent/RazorComponent.csproj" Id="3d7adc31-d75e-4ba5-9f4f-474d1fd6c19d" />
   <Project Path="WebView/WebView.csproj" />
 </Solution>

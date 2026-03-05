@@ -1,32 +1,27 @@
+using Core.Interfaces;
+using Core.Models;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using WebView.Models;
 
-namespace WebView.Controllers
+namespace GeoArtist.WebDemo.Controllers;
+
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    private readonly IGeoService _geoService;
+
+    public HomeController(IGeoService geoService)
     {
-        private readonly ILogger<HomeController> _logger;
+        _geoService = geoService;
+    }
 
-        public HomeController(ILogger<HomeController> logger)
-        {
-            _logger = logger;
-        }
+    public IActionResult Index()
+    {
+        string sampleGeoJson = @"{
+          ""type"": ""Polygon"",
+          ""coordinates"": [[[74.6,42.87],[74.61,42.87],[74.61,42.88],[74.6,42.88],[74.6,42.87]]]
+        }";
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        GeoResult geo = _geoService.Parse(sampleGeoJson);
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        return View(geo);
     }
 }
