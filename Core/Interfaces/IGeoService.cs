@@ -4,7 +4,7 @@ namespace Core.Interfaces
 {
     public interface IGeoService
     {
-        GeoParseResult Parse(string geoJson);
-        IEnumerable<GeoParseResult> ParseBatch(IEnumerable<string> geoJsonCollection);
+        GeoResult Parse(string geoJson);
+        IEnumerable<GeoResult> ParseBatch(IEnumerable<string> geoJsonCollection);
     }
 }
