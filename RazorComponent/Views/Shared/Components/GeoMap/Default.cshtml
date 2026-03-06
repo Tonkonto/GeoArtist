@@ -1,0 +1,32 @@
+@using System.Text.Json
+@using Core.Models
+@using RazorComponent.Models
+@model GeoMapVm
+
+<div id="@Model.MapId" style="height:@Model.Height;"></div>
+
+@{
+    var items =
+        Model.GeoBatch
+        ?? (Model.Geo is not null
+            ? new[] { Model.Geo }
+            : Array.Empty<GeoResult>());
+
+    var clientItems = items.Select(x => new
+    {
+        geoJson = x.GeoJson
+    });
+
+    var json = JsonSerializer.Serialize(clientItems);
+}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        window.geoModule.renderMap(
+            '@Model.MapId',
+            @Html.Raw(json),
+            '@Model.PolygonColor',
+            @Model.PolygonOpacity.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        );
+    });
+</script>

@@ -1,7 +1,11 @@
 ﻿@using Core.Models
-@model GeoResult
-@addTagHelper *, RazorComponent
+@model Core.Models.GeoResult
 
 <h2>GeoArtist Demo</h2>
 
-<geo-map Geo="@Model" MapId="demoMap" Height="600px" />
+@await Component.InvokeAsync("GeoMap", new
+{
+    geo = Model,
+    mapId = "demoMap",
+    height = "600px"
+})
