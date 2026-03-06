@@ -3,7 +3,7 @@ window.geoModule = {
         const mapElement = document.getElementById(mapId);
         if (!mapElement) return;
 
-        const map = L.map(mapId);
+        const map = L.map(mapId).setView([42.87, 74.60], 12);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
@@ -12,6 +12,8 @@ window.geoModule = {
         let bounds = null;
 
         geoArray.forEach(g => {
+            if (!g.geoJson) return;
+
             const geo = JSON.parse(g.geoJson);
 
             const layer = L.geoJSON(geo, {
@@ -22,7 +24,8 @@ window.geoModule = {
             }).addTo(map);
 
             const layerBounds = layer.getBounds();
-            if (layerBounds.isValid()) {
+
+            if (layerBounds && layerBounds.isValid()) {
                 if (bounds === null) {
                     bounds = layerBounds;
                 } else {
@@ -33,8 +36,6 @@ window.geoModule = {
 
         if (bounds && bounds.isValid()) {
             map.fitBounds(bounds);
-        } else {
-            map.setView([42.87, 74.60], 12);
         }
     }
 };
