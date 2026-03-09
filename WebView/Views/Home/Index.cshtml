@@ -8,9 +8,12 @@
 
 @await Component.InvokeAsync("GeoMap", new
 {
-    options = new GeoMapOptions
+    model = new GeoMapComponentModel
     {
-        MapId = "demoMap",
-        Height = "600px"
+        Options = new GeoMapOptions
+        {
+            MapId = "demoMap",
+            Height = "600px"
+        }
     }
 })
