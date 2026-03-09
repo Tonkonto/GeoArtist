@@ -1,8 +1,8 @@
-﻿using Core.Models;
+﻿using GeoComponent.Core.Models;
+using GeoComponent.Models;
 using Microsoft.AspNetCore.Mvc;
-using RazorComponent.Models;
 
-namespace RazorComponent.Components;
+namespace GeoComponent.ViewComponents;
 
 public class GeoMapViewComponent : ViewComponent
 {

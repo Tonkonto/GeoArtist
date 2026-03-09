@@ -1,10 +1,10 @@
-﻿using Core.ErrorHanders;
-using Core.Interfaces;
-using Core.Models;
+﻿using GeoComponent.Core.ErrorHanders;
+using GeoComponent.Core.Interfaces;
+using GeoComponent.Core.Models;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 
-namespace Core.Services;
+namespace GeoComponent.Core.Services;
 
 public class GeoService : IGeoService
 {

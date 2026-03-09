@@ -1,6 +1,6 @@
-﻿using Core.Models;
+﻿using GeoComponent.Core.Models;
 
-namespace Core.Interfaces;
+namespace GeoComponent.Core.Interfaces;
 
 public interface IGeoService
 {

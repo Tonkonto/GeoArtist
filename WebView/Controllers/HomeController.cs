@@ -1,5 +1,3 @@
-using Core.Interfaces;
-using Core.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebView.Controllers;

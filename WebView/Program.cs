@@ -1,5 +1,4 @@
-using Core.Interfaces;
-using Core.Services;
+using GeoComponent;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,8 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// Core сервис
-builder.Services.AddSingleton<IGeoService, GeoService>();
+// Geo сервис
+builder.Services.AddGeoComponent();
 
 var app = builder.Build();
 

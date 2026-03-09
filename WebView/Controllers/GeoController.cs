@@ -1,5 +1,5 @@
-﻿using Core.Interfaces;
-using Core.Models;
+﻿using GeoComponent.Core.Interfaces;
+using GeoComponent.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using WebView.Models.API;
 

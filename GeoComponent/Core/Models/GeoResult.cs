@@ -1,6 +1,4 @@
-﻿using NetTopologySuite.Geometries;
-
-namespace Core.Models;
+﻿namespace GeoComponent.Core.Models;
 
 public class GeoResult
 {

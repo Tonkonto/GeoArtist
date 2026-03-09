@@ -1,6 +1,6 @@
-﻿using Core.Models;
+﻿using GeoComponent.Core.Models;
 
-namespace RazorComponent.Models;
+namespace GeoComponent.Models;
 
 public class GeoMapVm
 {
