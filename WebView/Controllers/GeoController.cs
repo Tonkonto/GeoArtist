@@ -11,51 +11,41 @@ public class GeoController(IGeoService geoService) : ControllerBase
 {
     private readonly IGeoService _geoService = geoService;
 
+
     [HttpPost("geojson")]
-    public IActionResult PostGeoJson([FromBody] GeoJsonRequest request)
+    public IActionResult PostGeoJson([FromBody] GeoJsonSingleRequest request)
     {
-        if (!string.IsNullOrWhiteSpace(request.GeoJson))
-        {
-            var result = _geoService.ParseGeoJson(request.GeoJson);
-            return Ok(ToResponse(result));
-        }
+        var result = _geoService.ParseGeoJson(request.GeoJson);
+        return Ok(ToResponse(result));
+    }
 
-        if (request.GeoJsonList is { Count: > 0 })
-        {
-            var result = _geoService
-                .ParseGeoJsonBatch(request.GeoJsonList)
-                .Select(ToResponse)
-                .ToList();
+    [HttpPost("geojson/batch")]
+    public IActionResult PostGeoJsonBatch([FromBody] GeoJsonBatchRequest request)
+    {
+        var result = _geoService
+            .ParseGeoJsonBatch(request.GeoJsonList)
+            .Select(ToResponse)
+            .ToList();
 
-            return Ok(result);
-        }
-
-        return BadRequest("GeoJson or GeoJsonList is required.");
+        return Ok(result);
     }
 
     [HttpPost("wkt")]
-    public IActionResult PostWkt([FromBody] WktRequest request)
+    public IActionResult PostWkt([FromBody] WktSingleRequest request)
     {
-        if (request.Srid is null)
-            return BadRequest("Srid is required.");
+        var result = _geoService.ParseWkt(request.Wkt, request.Srid);
+        return Ok(ToResponse(result));
+    }
 
-        if (!string.IsNullOrWhiteSpace(request.Wkt))
-        {
-            var result = _geoService.ParseWkt(request.Wkt, request.Srid.Value);
-            return Ok(ToResponse(result));
-        }
+    [HttpPost("wkt/batch")]
+    public IActionResult PostWktBatch([FromBody] WktBatchRequest request)
+    {
+        var result = _geoService
+            .ParseWktBatch(request.WktList, request.Srid)
+            .Select(ToResponse)
+            .ToList();
 
-        if (request.WktList is { Count: > 0 })
-        {
-            var result = _geoService
-                .ParseWktBatch(request.WktList, request.Srid.Value)
-                .Select(ToResponse)
-                .ToList();
-
-            return Ok(result);
-        }
-
-        return BadRequest("Wkt or WktList is required.");
+        return Ok(result);
     }
 
     private static GeoResponse ToResponse(GeoResult x)

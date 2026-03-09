@@ -3,7 +3,7 @@
 @using GeoComponent.Models
 @model GeoMapVm
 
-<div id="@Model.MapId" style="height:@Model.Height;"></div>
+<div id="@Model.Options.MapId" style="height:@Model.Options.Height;"></div>
 
 @{
     var items = Model.GeoBatch ?? (Model.Geo is not null
@@ -14,25 +14,29 @@
         geoJson = x.GeoJson
     });
 
-    var json = JsonSerializer.Serialize(clientItems);
-    var mapId = JsonSerializer.Serialize(Model.MapId);
-    var polygonColor = JsonSerializer.Serialize(Model.PolygonColor);
-    var polygonOpacity = Model.PolygonOpacity.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    var geoJson = JsonSerializer.Serialize(clientItems);
+
+    var optionsJson = JsonSerializer.Serialize(new
+    {
+        mapId = Model.Options.MapId,
+        height = Model.Options.Height,
+        polygonColor = Model.Options.PolygonColor,
+        polygonOpacity = Model.Options.PolygonOpacity,
+        initialZoom = Model.Options.InitialZoom,
+        initialLat = Model.Options.InitialLat,
+        initialLng = Model.Options.InitialLng,
+        fitBounds = Model.Options.FitBounds,
+        showTileLayer = Model.Options.ShowTileLayer,
+        tileLayerUrl = Model.Options.TileLayerUrl,
+        tileLayerAttribution = Model.Options.TileLayerAttribution
+    });
 }
 
 <script>
-document.addEventListener('DOMContentLoaded', function ()
-{
-    const geoData = @Html.Raw(json);
-    const mapId = @Html.Raw(mapId);
-    const polygonColor = @Html.Raw(polygonColor);
-    const polygonOpacity = @polygonOpacity;
+document.addEventListener('DOMContentLoaded', function () {
+    const geoArray = @Html.Raw(geoJson);
+    const options = @Html.Raw(optionsJson);
 
-    window.geoModule.renderMap(
-        mapId,
-        geoData,
-        polygonColor,
-        polygonOpacity
-    );
+    window.geoComponent.renderMap(geoArray, options);
 });
 </script>
