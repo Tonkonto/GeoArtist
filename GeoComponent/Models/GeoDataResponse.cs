@@ -1,6 +1,6 @@
-﻿namespace WebView.Models.API;
+﻿namespace GeoComponent.Models;
 
-public class GeoResponse
+public class GeoDataResponse
 {
     public string GeometryType { get; set; } = default!;
     public int CoordinateCount { get; set; }
