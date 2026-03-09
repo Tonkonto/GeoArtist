@@ -1,11 +1,165 @@
-﻿@using Core.Models
-@model Core.Models.GeoResult
+﻿@{
+    ViewData["Title"] = "GeoArtist Demo";
+}
 
 <h2>GeoArtist Demo</h2>
 
-@await Component.InvokeAsync("GeoMap", new
-{
-    geo = Model,
-    mapId = "demoMap",
-    height = "600px"
-})
+<div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+    <button type="button" onclick="testGeoJsonSingle()">GeoJson single</button>
+    <button type="button" onclick="testGeoJsonBatch()">GeoJson batch</button>
+    <button type="button" onclick="testWktSingle()">WKT single</button>
+    <button type="button" onclick="testWktBatch()">WKT batch</button>
+</div>
+
+<div style="margin-bottom:16px;">
+    <pre id="apiResult" style="padding:12px; background:#f4f4f4; border:1px solid #ccc; max-height:220px; overflow:auto;"></pre>
+</div>
+
+<div id="demoMap" style="height:600px;"></div>
+
+
+
+<script>
+let demoMap = null;
+let demoLayer = null;
+
+function ensureMap() {
+    if (demoMap) return;
+
+    demoMap = L.map('demoMap').setView([42.87, 74.60], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(demoMap);
+}
+
+function drawResults(results) {
+    ensureMap();
+
+    if (demoLayer) {
+        demoMap.removeLayer(demoLayer);
+        demoLayer = null;
+    }
+
+    const items = Array.isArray(results) ? results : [results];
+
+    const features = items
+        .filter(x => x && x.geoJson)
+        .map(x => JSON.parse(x.geoJson));
+
+    demoLayer = L.geoJSON(features, {
+        style: {
+            color: '#3388ff',
+            opacity: 0.8
+        }
+    }).addTo(demoMap);
+
+    const bounds = demoLayer.getBounds();
+    if (bounds.isValid()) {
+        demoMap.fitBounds(bounds);
+    }
+}
+
+function showResult(data) {
+    document.getElementById('apiResult').textContent =
+        JSON.stringify(data, null, 2);
+}
+
+async function postJson(url, payload) {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    const text = await response.text();
+
+    let data = null;
+    try {
+        data = text ? JSON.parse(text) : null;
+    } catch {
+        data = text;
+    }
+
+    if (!response.ok) {
+        showResult(data);
+        throw new Error('HTTP ' + response.status);
+    }
+
+    showResult(data);
+    return data;
+}
+
+async function testGeoJsonSingle() {
+    const payload = {
+        geoJson: JSON.stringify({
+            type: "Polygon",
+            coordinates: [[
+                [74.60, 42.87],
+                [74.61, 42.87],
+                [74.61, 42.88],
+                [74.60, 42.88],
+                [74.60, 42.87]
+            ]]
+        })
+    };
+
+    const data = await postJson('/api/geo/geojson', payload);
+    drawResults(data);
+}
+
+async function testGeoJsonBatch() {
+    const payload = {
+        geoJsonList: [
+            JSON.stringify({
+                type: "Polygon",
+                coordinates: [[
+                    [74.60, 42.87],
+                    [74.61, 42.87],
+                    [74.61, 42.88],
+                    [74.60, 42.88],
+                    [74.60, 42.87]
+                ]]
+            }),
+            JSON.stringify({
+                type: "Polygon",
+                coordinates: [[
+                    [74.62, 42.87],
+                    [74.63, 42.87],
+                    [74.63, 42.88],
+                    [74.62, 42.88],
+                    [74.62, 42.87]
+                ]]
+            })
+        ]
+    };
+
+    const data = await postJson('/api/geo/geojson', payload);
+    drawResults(data);
+}
+
+async function testWktSingle() {
+    const payload = {
+        wkt: "MULTIPOLYGON(((74.60 42.87,74.61 42.87,74.61 42.88,74.60 42.88,74.60 42.87)))",
+        srid: 4326
+    };
+
+    const data = await postJson('/api/geo/wkt', payload);
+    drawResults(data);
+}
+
+async function testWktBatch() {
+    const payload = {
+        wktList: [
+            "MULTIPOLYGON(((74.60 42.87,74.61 42.87,74.61 42.88,74.60 42.88,74.60 42.87)))",
+            "MULTIPOLYGON(((74.62 42.87,74.63 42.87,74.63 42.88,74.62 42.88,74.62 42.87)))"
+        ],
+        srid: 4326
+    };
+
+    const data = await postJson('/api/geo/wkt', payload);
+    drawResults(data);
+}
+
+ensureMap();
+</script>
