@@ -1,9 +1,6 @@
 ﻿namespace GeoComponent.Core.ErrorHanders;
 
-public class InvalidGeoJsonException : Exception
+public class InvalidGeoJsonException(string message) : Exception(message)
 {
-    public InvalidGeoJsonException(string message)
-        : base(message)
-    {
-    }
+
 }

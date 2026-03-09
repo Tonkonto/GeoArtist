@@ -6,27 +6,33 @@
 <div id="@Model.MapId" style="height:@Model.Height;"></div>
 
 @{
-    var items =
-        Model.GeoBatch
-        ?? (Model.Geo is not null
+    var items = Model.GeoBatch ?? (Model.Geo is not null
             ? new[] { Model.Geo }
             : Array.Empty<GeoResult>());
 
-    var clientItems = items.Select(x => new
-    {
+    var clientItems = items.Select(x => new {
         geoJson = x.GeoJson
     });
 
     var json = JsonSerializer.Serialize(clientItems);
+    var mapId = JsonSerializer.Serialize(Model.MapId);
+    var polygonColor = JsonSerializer.Serialize(Model.PolygonColor);
+    var polygonOpacity = Model.PolygonOpacity.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        window.geoModule.renderMap(
-            '@Model.MapId',
-            @Html.Raw(json),
-            '@Model.PolygonColor',
-            @Model.PolygonOpacity.ToString(System.Globalization.CultureInfo.InvariantCulture)
-        );
-    });
+document.addEventListener('DOMContentLoaded', function ()
+{
+    const geoData = @Html.Raw(json);
+    const mapId = @Html.Raw(mapId);
+    const polygonColor = @Html.Raw(polygonColor);
+    const polygonOpacity = @polygonOpacity;
+
+    window.geoModule.renderMap(
+        mapId,
+        geoData,
+        polygonColor,
+        polygonOpacity
+    );
+});
 </script>

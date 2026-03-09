@@ -6,26 +6,25 @@ using NetTopologySuite.IO;
 
 namespace GeoComponent.Core.Services;
 
-public class GeoService : IGeoService
+public class GeoService(
+        GeoJsonReader geoJsonReader,
+        GeoJsonWriter geoJsonWriter,
+        WKTReader wktReader,
+        IGeometryTransformService geometryTransformService)
+    : IGeoService
 {
-    private readonly GeoJsonReader _geoJsonReader;
-    private readonly GeoJsonWriter _geoJsonWriter;
-    private readonly WKTReader _wktReader;
+    private readonly GeoJsonReader _geoJsonReader = geoJsonReader;
+    private readonly GeoJsonWriter _geoJsonWriter = geoJsonWriter;
+    private readonly WKTReader _wktReader = wktReader;
+    private readonly IGeometryTransformService _geometryTransformService = geometryTransformService;
 
-    public GeoService()
-    {
-        _geoJsonReader = new GeoJsonReader();
-        _geoJsonWriter = new GeoJsonWriter();
-        _wktReader = new WKTReader();
-    }
 
     public GeoResult ParseGeoJson(string geoJson)
     {
         if (string.IsNullOrWhiteSpace(geoJson))
-            throw new InvalidGeoJsonException("GeoJson is empty.");
+            throw new InvalidGeoJsonException("GeoJson is empty");
 
         Geometry geometry;
-
         try
         {
             geometry = _geoJsonReader.Read<Geometry>(geoJson);
@@ -36,7 +35,7 @@ public class GeoService : IGeoService
         }
 
         if (geometry is null)
-            throw new InvalidGeoJsonException("Parsed geometry is null.");
+            throw new InvalidGeoJsonException("Parsed geometry is null");
 
         geometry.SRID = 4326;
 
@@ -54,7 +53,7 @@ public class GeoService : IGeoService
     public GeoResult ParseWkt(string wkt, int srid)
     {
         if (string.IsNullOrWhiteSpace(wkt))
-            throw new ArgumentException("WKT is empty.");
+            throw new ArgumentException("WKT is empty");
 
         Geometry geometry;
 
@@ -68,17 +67,14 @@ public class GeoService : IGeoService
         }
 
         if (geometry is null)
-            throw new ArgumentException("Parsed WKT geometry is null.");
+            throw new ArgumentException("Parsed WKT geometry is null");
 
         geometry.SRID = srid;
 
+        geometry = _geometryTransformService.TransformToWgs84(geometry, srid);
+
         ValidateGeometryType(geometry);
 
-        // ♦♦♦ todo ♦♦♦
-        // Пока без transform.
-        // Если входной SRID != 4326, для карты это надо будет преобразовать.
-        // Временный вариант: считать, что уже приходит 4326.
-        // Следующим шагом добавим transform.
         return BuildResult(geometry);
     }
 

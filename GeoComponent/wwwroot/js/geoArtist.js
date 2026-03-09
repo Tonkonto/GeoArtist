@@ -6,7 +6,7 @@ window.geoModule = {
         const map = L.map(mapId).setView([42.87, 74.60], 12);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>'
         }).addTo(map);
 
         let bounds = null;
