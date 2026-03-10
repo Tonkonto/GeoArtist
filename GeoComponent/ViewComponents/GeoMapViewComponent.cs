@@ -5,17 +5,12 @@ namespace GeoComponent.ViewComponents;
 
 public class GeoMapViewComponent : ViewComponent
 {
-    public IViewComponentResult Invoke(GeoMapComponentModel model)
+    public IViewComponentResult Invoke(GeoMap model)
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        var vm = new GeoMapVm
-        {
-            Geo = model.Geo,
-            GeoBatch = model.GeoBatch,
-            Options = model.Options ?? new GeoMapOptions()
-        };
+        model.Options ??= new GeoMapOptions();
 
-        return View("~/Views/Shared/Components/GeoMap/Default.cshtml", vm);
+        return View("~/Views/Shared/Components/GeoMap/Default.cshtml", model);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace GeoComponent.Models;
 
-public class GeoMapVm
+public class GeoMap
 {
     public GeoResult? Geo { get; set; }
     public IEnumerable<GeoResult>? GeoBatch { get; set; }
