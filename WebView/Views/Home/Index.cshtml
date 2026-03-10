@@ -2,18 +2,182 @@
 
 @{
     ViewData["Title"] = "GeoArtist Demo";
+
+    var mapOptions = new GeoMapOptions
+    {
+        MapId = "demoMap",
+        Height = "600px",
+        InitialLat = 42.87,
+        InitialLng = 74.60,
+        InitialZoom = 12,
+        FitBounds = true
+    };
 }
 
 <h2>GeoArtist Demo</h2>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+    <button type="button" onclick="testGeoJsonSingle()">POST geojson</button>
+    <button type="button" onclick="testGeoJsonBatch()">POST geojson/batch</button>
+    <button type="button" onclick="testWktSingle()">POST wkt</button>
+    <button type="button" onclick="testWktBatch()">POST wkt/batch</button>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+    <div>
+        <h3>Request</h3>
+        <pre id="requestBox" style="padding:12px; background:#f4f4f4; border:1px solid #ccc; min-height:180px; overflow:auto;"></pre>
+    </div>
+    <div>
+        <h3>Response</h3>
+        <pre id="responseBox" style="padding:12px; background:#f4f4f4; border:1px solid #ccc; min-height:180px; overflow:auto;"></pre>
+    </div>
+</div>
 
 @await Component.InvokeAsync("GeoMap", new
 {
     model = new GeoMapComponentModel
     {
-        Options = new GeoMapOptions
-        {
-            MapId = "demoMap",
-            Height = "600px"
-        }
+        Options = mapOptions
     }
 })
+
+<script>
+    const geoMapOptions = {
+        mapId: "@mapOptions.MapId",
+        height: "@mapOptions.Height",
+        polygonColor: "@mapOptions.PolygonColor",
+        polygonOpacity: @mapOptions.PolygonOpacity.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        initialZoom: @mapOptions.InitialZoom,
+        initialLat: @mapOptions.InitialLat.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        initialLng: @mapOptions.InitialLng.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        fitBounds: @(mapOptions.FitBounds.ToString().ToLowerInvariant()),
+        showTileLayer: @(mapOptions.ShowTileLayer.ToString().ToLowerInvariant()),
+        tileLayerUrl: "@Html.Raw(mapOptions.TileLayerUrl)",
+        tileLayerAttribution: "@Html.Raw(mapOptions.TileLayerAttribution)"
+    };
+
+    function setRequest(url, payload) {
+        document.getElementById("requestBox").textContent =
+            url + "\n\n" + JSON.stringify(payload, null, 2);
+    }
+
+    function setResponse(data) {
+        document.getElementById("responseBox").textContent =
+            typeof data === "string" ? data : JSON.stringify(data, null, 2);
+    }
+
+    function normalizeGeoResponse(data) {
+        const items = Array.isArray(data) ? data : [data];
+
+        return items
+            .filter(x => x)
+            .map(x => ({
+                geoJson: x.geoJson ?? x.GeoJson
+            }))
+            .filter(x => x.geoJson);
+    }
+
+    async function postJson(url, payload) {
+        setRequest(url, payload);
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const text = await response.text();
+
+        let data;
+        try {
+            data = text ? JSON.parse(text) : null;
+        } catch {
+            data = text;
+        }
+
+        setResponse(data);
+
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+
+        return data;
+    }
+
+    function renderApiResult(data) {
+        const geoArray = normalizeGeoResponse(data);
+        window.geoComponent.renderMap(geoArray, geoMapOptions);
+    }
+
+    async function testGeoJsonSingle() {
+        const payload = {
+            geoJson: JSON.stringify({
+                type: "Polygon",
+                coordinates: [[
+                    [74.60, 42.87],
+                    [74.61, 42.87],
+                    [74.61, 42.88],
+                    [74.60, 42.88],
+                    [74.60, 42.87]
+                ]]
+            })
+        };
+
+        const data = await postJson("/api/geo/geojson", payload);
+        renderApiResult(data);
+    }
+
+    async function testGeoJsonBatch() {
+        const payload = {
+            geoJsonList: [
+                JSON.stringify({
+                    type: "Polygon",
+                    coordinates: [[
+                        [74.60, 42.87],
+                        [74.61, 42.87],
+                        [74.61, 42.88],
+                        [74.60, 42.88],
+                        [74.60, 42.87]
+                    ]]
+                }),
+                JSON.stringify({
+                    type: "Polygon",
+                    coordinates: [[
+                        [74.62, 42.87],
+                        [74.63, 42.87],
+                        [74.63, 42.88],
+                        [74.62, 42.88],
+                        [74.62, 42.87]
+                    ]]
+                })
+            ]
+        };
+
+        const data = await postJson("/api/geo/geojson/batch", payload);
+        renderApiResult(data);
+    }
+
+    async function testWktSingle() {
+        const payload = {
+            wkt: "MULTIPOLYGON(((74.60 42.87,74.61 42.87,74.61 42.88,74.60 42.88,74.60 42.87)))",
+            srid: 4326
+        };
+
+        const data = await postJson("/api/geo/wkt", payload);
+        renderApiResult(data);
+    }
+
+    async function testWktBatch() {
+        const payload = {
+            wktList: [
+                "MULTIPOLYGON(((74.60 42.87,74.61 42.87,74.61 42.88,74.60 42.88,74.60 42.87)))",
+                "MULTIPOLYGON(((74.62 42.87,74.63 42.87,74.63 42.88,74.62 42.88,74.62 42.87)))"
+            ],
+            srid: 4326
+        };
+
+        const data = await postJson("/api/geo/wkt/batch", payload);
+        renderApiResult(data);
+    }
+</script>
