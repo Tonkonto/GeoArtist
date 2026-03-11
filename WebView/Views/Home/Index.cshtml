@@ -1,4 +1,5 @@
 ﻿@using GeoComponent.Models
+@using System.Text.Json
 
 @{
     ViewData["Title"] = "GeoArtist Demo";
@@ -12,6 +13,21 @@
         InitialZoom = 12,
         FitBounds = true
     };
+
+    var mapOptionsJson = JsonSerializer.Serialize(new
+    {
+        mapId = mapOptions.MapId,
+        height = mapOptions.Height,
+        polygonColor = mapOptions.PolygonColor,
+        polygonOpacity = mapOptions.PolygonOpacity,
+        initialZoom = mapOptions.InitialZoom,
+        initialLat = mapOptions.InitialLat,
+        initialLng = mapOptions.InitialLng,
+        fitBounds = mapOptions.FitBounds,
+        showTileLayer = mapOptions.ShowTileLayer,
+        tileLayerUrl = mapOptions.TileLayerUrl,
+        tileLayerAttribution = mapOptions.TileLayerAttribution
+    });
 }
 
 <h2>GeoArtist Demo</h2>
@@ -35,11 +51,11 @@
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
     <div>
         <h3>Request</h3>
-        <pre id="requestBox" style="padding:12px; background:#f4f4f4; border:1px solid #ccc; min-height:180px; overflow:auto;"></pre>
+        <pre id="requestBox" style="padding:12px; background:#f4f4f4; border:1px solid #ccc; min-height:180px; max-height:300px; overflow:auto;"></pre>
     </div>
     <div>
         <h3>Response</h3>
-        <pre id="responseBox" style="padding:12px; background:#f4f4f4; border:1px solid #ccc; min-height:180px; overflow:auto;"></pre>
+        <pre id="responseBox" style="padding:12px; background:#f4f4f4; border:1px solid #ccc; min-height:180px; max-height:300px; overflow:auto;"></pre>
     </div>
 </div>
 
@@ -52,19 +68,12 @@
 })
 
 <script>
-const geoMapOptions = {
-    mapId: "@mapOptions.MapId",
-    height: "@mapOptions.Height",
-    polygonColor: "@mapOptions.PolygonColor",
-    polygonOpacity: @mapOptions.PolygonOpacity.ToString(System.Globalization.CultureInfo.InvariantCulture),
-    initialZoom: @mapOptions.InitialZoom,
-    initialLat: @mapOptions.InitialLat.ToString(System.Globalization.CultureInfo.InvariantCulture),
-    initialLng: @mapOptions.InitialLng.ToString(System.Globalization.CultureInfo.InvariantCulture),
-    fitBounds: @(mapOptions.FitBounds.ToString().ToLowerInvariant()),
-    showTileLayer: @(mapOptions.ShowTileLayer.ToString().ToLowerInvariant()),
-    tileLayerUrl: "@Html.Raw(mapOptions.TileLayerUrl)",
-    tileLayerAttribution: "@Html.Raw(mapOptions.TileLayerAttribution)"
-};
+const geoMapOptions = @Html.Raw(mapOptionsJson);
+
+function setRequest(url, payload) {
+    document.getElementById("requestBox").textContent =
+        url + "\n\n" + JSON.stringify(payload, null, 2);
+}
 
 function setRequest(url, payload) {
     document.getElementById("requestBox").textContent =
