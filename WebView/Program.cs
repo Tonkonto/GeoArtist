@@ -1,7 +1,5 @@
 using GeoComponent;
-using Microsoft.AspNetCore.Mvc;
 using WebView.Middleware;
-using WebView.Models.API;
 
 var builder = WebApplication.CreateBuilder(args);
 

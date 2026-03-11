@@ -1,5 +1,4 @@
-﻿using GeoComponent.Core.Interfaces;
-using NetTopologySuite.Geometries;
+﻿using NetTopologySuite.Geometries;
 using ProjNet.CoordinateSystems;
 using ProjNet.CoordinateSystems.Transformations;
 
