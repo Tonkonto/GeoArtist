@@ -1,8 +1,269 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@using GeoComponent.Models
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "GeoArtist Demo";
+
+    var mapOptions = new GeoMapOptions
+    {
+        MapId = "demoMap",
+        Height = "600px",
+        InitialLat = 42.87,
+        InitialLng = 74.60,
+        InitialZoom = 12,
+        FitBounds = true
+    };
+
+    var mapOptionsJson = JsonSerializer.Serialize(new
+    {
+        mapId = mapOptions.MapId,
+        height = mapOptions.Height,
+        polygonColor = mapOptions.PolygonColor,
+        polygonOpacity = mapOptions.PolygonOpacity,
+        initialZoom = mapOptions.InitialZoom,
+        initialLat = mapOptions.InitialLat,
+        initialLng = mapOptions.InitialLng,
+        fitBounds = mapOptions.FitBounds,
+        showTileLayer = mapOptions.ShowTileLayer,
+        tileLayerUrl = mapOptions.TileLayerUrl,
+        tileLayerAttribution = mapOptions.TileLayerAttribution
+    });
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<h2>GeoArtist Demo</h2>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+    <button type="button" onclick="testGeoJsonSingle()">POST geojson</button>
+    <button type="button" onclick="testGeoJsonBatch()">POST geojson/batch</button>
+    <button type="button" onclick="testWktSingle()">POST wkt</button>
+    <button type="button" onclick="testWktBatch()">POST wkt/batch</button>
 </div>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;">
+    <button type="button" onclick="loadFromController()">Load via Controller</button>
+</div>
+
+<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px;">
+    <input type="file" id="geoJsonFileInput" accept=".json,.geojson,application/json" />
+    <button type="button" onclick="loadGeoJsonFromFile()">Load GeoJSON file</button>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+    <div>
+        <h3>Request</h3>
+        <pre id="requestBox" style="padding:12px; background:#f4f4f4; border:1px solid #ccc; min-height:180px; max-height:300px; overflow:auto;"></pre>
+    </div>
+    <div>
+        <h3>Response</h3>
+        <pre id="responseBox" style="padding:12px; background:#f4f4f4; border:1px solid #ccc; min-height:180px; max-height:300px; overflow:auto;"></pre>
+    </div>
+</div>
+
+@await Component.InvokeAsync("GeoMap", new
+{
+    model = new GeoMap
+    {
+        Options = mapOptions
+    }
+})
+
+<script>
+const geoMapOptions = @Html.Raw(mapOptionsJson);
+
+function setRequest(url, payload) {
+    document.getElementById("requestBox").textContent =
+        url + "\n\n" + JSON.stringify(payload, null, 2);
+}
+
+function setRequest(url, payload) {
+    document.getElementById("requestBox").textContent =
+        url + "\n\n" + JSON.stringify(payload, null, 2);
+}
+
+function setResponse(data) {
+    document.getElementById("responseBox").textContent =
+        typeof data === "string" ? data : JSON.stringify(data, null, 2);
+}
+
+function normalizeGeoResponse(data) {
+    const items = Array.isArray(data) ? data : [data];
+
+    return items
+        .filter(x => x)
+        .map(x => ({
+            geoJson: x.geoJson ?? x.GeoJson
+        }))
+        .filter(x => x.geoJson);
+}
+
+async function postJson(url, payload) {
+    setRequest(url, payload);
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+
+    const text = await response.text();
+
+    let data;
+    try {
+        data = text ? JSON.parse(text) : null;
+    } catch {
+        data = text;
+    }
+
+    setResponse(data);
+
+    if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+    }
+
+    return data;
+}
+
+function renderApiResult(data) {
+    const geoArray = normalizeGeoResponse(data);
+    window.geoComponent.renderMap(geoArray, geoMapOptions);
+}
+
+async function testGeoJsonSingle() {
+    const payload = {
+        geoJson: JSON.stringify({
+            type: "Polygon",
+            coordinates: [[
+                [74.60, 42.87],
+                [74.61, 42.87],
+                [74.61, 42.88],
+                [74.60, 42.88],
+                [74.60, 42.87]
+            ]]
+        })
+    };
+
+    const data = await postJson("/api/geo/geojson", payload);
+    renderApiResult(data);
+}
+
+async function testGeoJsonBatch() {
+    const payload = {
+        geoJsonList: [
+            JSON.stringify({
+                type: "Polygon",
+                coordinates: [[
+                    [74.60, 42.87],
+                    [74.61, 42.87],
+                    [74.61, 42.88],
+                    [74.60, 42.88],
+                    [74.60, 42.87]
+                ]]
+            }),
+            JSON.stringify({
+                type: "Polygon",
+                coordinates: [[
+                    [74.62, 42.87],
+                    [74.63, 42.87],
+                    [74.63, 42.88],
+                    [74.62, 42.88],
+                    [74.62, 42.87]
+                ]]
+            })
+        ]
+    };
+
+    const data = await postJson("/api/geo/geojson/batch", payload);
+    renderApiResult(data);
+}
+
+async function testWktSingle() {
+    const payload = {
+        wkt: "MULTIPOLYGON(((74.60 42.87,74.61 42.87,74.61 42.88,74.60 42.88,74.60 42.87)))",
+        srid: 4326
+    };
+
+    const data = await postJson("/api/geo/wkt", payload);
+    renderApiResult(data);
+}
+
+async function testWktBatch() {
+    const payload = {
+        wktList: [
+            "MULTIPOLYGON(((74.60 42.87,74.61 42.87,74.61 42.88,74.60 42.88,74.60 42.87)))",
+            "MULTIPOLYGON(((74.62 42.87,74.63 42.87,74.63 42.88,74.62 42.88,74.62 42.87)))"
+        ],
+        srid: 4326
+    };
+
+    const data = await postJson("/api/geo/wkt/batch", payload);
+    renderApiResult(data);
+}
+
+async function loadFromController() {
+    setRequest("/Home/TestPolygon", { method: "GET" });
+
+    const response = await fetch("/Home/TestPolygon");
+    const data = await response.json();
+
+    setResponse(data);
+
+    const geoArray = Array.isArray(data) ? data : [data];
+    window.geoComponent.renderMap(geoArray, geoMapOptions);
+}
+
+function readTextFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error ?? new Error("Failed to read file"));
+
+        reader.readAsText(file);
+    });
+}
+
+function normalizeGeoFileContent(parsed) {
+    const items = Array.isArray(parsed) ? parsed : [parsed];
+
+    return items
+        .filter(x => x)
+        .map(x => ({
+            geoJson: JSON.stringify(x)
+        }));
+}
+
+async function loadGeoJsonFromFile() {
+    const input = document.getElementById("geoJsonFileInput");
+    const file = input?.files?.[0];
+
+    if (!file) {
+        setResponse("No file selected.");
+        return;
+    }
+
+    const text = await readTextFile(file);
+
+    setRequest("LOCAL FILE", {
+        fileName: file.name,
+        size: file.size
+    });
+
+    let parsed;
+    try {
+        parsed = JSON.parse(text);
+    } catch {
+        setResponse("Selected file is not valid JSON.");
+        return;
+    }
+
+    const geoArray = normalizeGeoFileContent(parsed);
+
+    if (!geoArray.length) {
+        setResponse("No GeoJSON objects found in file.");
+        return;
+    }
+
+    setResponse(parsed);
+    window.geoComponent.renderMap(geoArray, geoMapOptions);
+}
+</script>

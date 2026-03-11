@@ -1,0 +1,42 @@
+@using System.Text.Json
+@using GeoComponent.Core.Models
+@using GeoComponent.Models
+@model GeoMap
+
+<div id="@Model.Options.MapId" style="height:@Model.Options.Height;"></div>
+
+@{
+    var items = Model.GeoBatch ?? (Model.Geo is not null
+            ? new[] { Model.Geo }
+            : Array.Empty<GeoResult>());
+
+    var clientItems = items.Select(x => new {
+        geoJson = x.GeoJson
+    });
+
+    var geoJson = JsonSerializer.Serialize(clientItems);
+
+    var optionsJson = JsonSerializer.Serialize(new
+    {
+        mapId = Model.Options.MapId,
+        height = Model.Options.Height,
+        polygonColor = Model.Options.PolygonColor,
+        polygonOpacity = Model.Options.PolygonOpacity,
+        initialZoom = Model.Options.InitialZoom,
+        initialLat = Model.Options.InitialLat,
+        initialLng = Model.Options.InitialLng,
+        fitBounds = Model.Options.FitBounds,
+        showTileLayer = Model.Options.ShowTileLayer,
+        tileLayerUrl = Model.Options.TileLayerUrl,
+        tileLayerAttribution = Model.Options.TileLayerAttribution
+    });
+}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const geoArray = @Html.Raw(geoJson);
+    const options = @Html.Raw(optionsJson);
+
+    window.geoComponent.renderMap(geoArray, options);
+});
+</script>

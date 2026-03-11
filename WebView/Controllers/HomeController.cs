@@ -1,32 +1,38 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using WebView.Models;
 
-namespace WebView.Controllers
+namespace WebView.Controllers;
+
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    public IActionResult Index()
     {
-        private readonly ILogger<HomeController> _logger;
+        return View();
+    }
 
-        public HomeController(ILogger<HomeController> logger)
+    [HttpGet]
+    public IActionResult TestPolygon()
+    {
+        var polygon = new
         {
-            _logger = logger;
+            geometryType = "Polygon",
+            coordinateCount = 5,
+            geoJson = """
+        {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [74.60,42.87],
+              [74.61,42.87],
+              [74.61,42.88],
+              [74.60,42.88],
+              [74.60,42.87]
+            ]
+          ]
         }
+        """,
+            isValid = true
+        };
 
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        return Json(polygon);
     }
 }
