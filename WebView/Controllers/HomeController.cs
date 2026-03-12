@@ -4,6 +4,11 @@ namespace WebView.Controllers;
 
 public class HomeController : Controller
 {
+    /*
+     * This Controller exposes demo endpoints to GeoComponent and allows custom routes.
+     */
+
+
     public IActionResult Index()
     {
         return View();
@@ -17,19 +22,19 @@ public class HomeController : Controller
             geometryType = "Polygon",
             coordinateCount = 5,
             geoJson = """
-        {
-          "type": "Polygon",
-          "coordinates": [
-            [
-              [74.60,42.87],
-              [74.61,42.87],
-              [74.61,42.88],
-              [74.60,42.88],
-              [74.60,42.87]
-            ]
-          ]
-        }
-        """,
+            {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [74.60,42.87],
+                        [74.61,42.87],
+                        [74.61,42.88],
+                        [74.60,42.88],
+                        [74.60,42.87]
+                    ]
+                ]
+            }
+            """,
             isValid = true
         };
 

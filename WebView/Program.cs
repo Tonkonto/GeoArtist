@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 
-// Geo сервис
+// Geo service
 builder.Services.AddGeoComponent();
 
 var app = builder.Build();

@@ -44,8 +44,8 @@
 </div>
 
 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px;">
-    <input type="file" id="geoJsonFileInput" accept=".json,.geojson,application/json" />
-    <button type="button" onclick="loadGeoJsonFromFile()">Load GeoJSON file</button>
+    <input type="file" id="shapeFileInput" accept=".json,.geojson,application/json" />
+    <button type="button" onclick="loadShapeFile()">Load shape file</button>
 </div>
 
 <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
@@ -69,11 +69,6 @@
 
 <script>
 const geoMapOptions = @Html.Raw(mapOptionsJson);
-
-function setRequest(url, payload) {
-    document.getElementById("requestBox").textContent =
-        url + "\n\n" + JSON.stringify(payload, null, 2);
-}
 
 function setRequest(url, payload) {
     document.getElementById("requestBox").textContent =
@@ -222,7 +217,17 @@ function readTextFile(file) {
     });
 }
 
-function normalizeGeoFileContent(parsed) {
+function isWktBatchRequest(obj) {
+    return !!obj
+        && !Array.isArray(obj)
+        && Array.isArray(obj.wktList)
+        && obj.wktList.length > 0
+        && obj.wktList.every(x => typeof x === "string")
+        && Number.isInteger(obj.srid)
+        && obj.srid > 0;
+}
+
+function toGeoArrayFromGeoJsonFile(parsed) {
     const items = Array.isArray(parsed) ? parsed : [parsed];
 
     return items
@@ -232,8 +237,8 @@ function normalizeGeoFileContent(parsed) {
         }));
 }
 
-async function loadGeoJsonFromFile() {
-    const input = document.getElementById("geoJsonFileInput");
+async function loadShapeFile() {
+    const input = document.getElementById("shapeFileInput");
     const file = input?.files?.[0];
 
     if (!file) {
@@ -256,10 +261,16 @@ async function loadGeoJsonFromFile() {
         return;
     }
 
-    const geoArray = normalizeGeoFileContent(parsed);
+    if (isWktBatchRequest(parsed)) {
+        const data = await postJson("/api/geo/wkt/batch", parsed);
+        renderApiResult(data);
+        return;
+    }
+
+    const geoArray = toGeoArrayFromGeoJsonFile(parsed);
 
     if (!geoArray.length) {
-        setResponse("No GeoJSON objects found in file.");
+        setResponse("No supported shapes found in file.");
         return;
     }
 

@@ -8,6 +8,10 @@ namespace WebView.Controllers;
 [Route("api/geo")]
 public class GeoController(IGeoComponentFacade geoFacade) : ControllerBase
 {
+    /*
+     * This Controller exposes standard GeoComponent operations for front-end API calls.
+     */
+
     private readonly IGeoComponentFacade _geoFacade = geoFacade;
 
     [HttpPost("geojson")]
