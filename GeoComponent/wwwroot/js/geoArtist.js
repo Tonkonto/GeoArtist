@@ -29,7 +29,7 @@ window.geoComponent = {
             L.tileLayer(
                 options.tileLayerUrl ?? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                 {
-                    attribution: options.tileLayerAttribution ?? "&copy; OpenStreetMap contributors"
+                    attribution: options.tileLayerAttribution
                 }
             ).addTo(map);
         }
@@ -68,7 +68,7 @@ window.geoComponent = {
 
                 const layer = L.geoJSON(parsed, {
                     style: {
-                        color: options.polygonColor ?? "#3388ff",
+                        color: options.polygonColor ?? "#ff0000",   //for debugging pupose if options fail quietly
                         opacity: options.polygonOpacity ?? 0.8
                     }
                 });

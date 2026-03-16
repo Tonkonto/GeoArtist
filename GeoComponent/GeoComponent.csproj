@@ -13,11 +13,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-      
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />    
     <PackageReference Include="NetTopologySuite" Version="2.6.0" />
     <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="4.0.0" />
     <PackageReference Include="ProjNET" Version="2.1.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Views\Shared\Components\GeoMap\" />
+  </ItemGroup>
+	
+	<PropertyGroup>
+		<GeoComponentWwwRoot>$(MSBuildProjectDirectory)\wwwroot\</GeoComponentWwwRoot>
+	</PropertyGroup>
 
 </Project>
