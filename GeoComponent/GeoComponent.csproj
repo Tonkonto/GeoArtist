@@ -22,9 +22,5 @@
   <ItemGroup>
     <Folder Include="Views\Shared\Components\GeoMap\" />
   </ItemGroup>
-	
-	<PropertyGroup>
-		<GeoComponentWwwRoot>$(MSBuildProjectDirectory)\wwwroot\</GeoComponentWwwRoot>
-	</PropertyGroup>
 
 </Project>

@@ -11,7 +11,7 @@ public class GeoService(
         GeoJsonWriter geoJsonWriter,
         WKTReader wktReader,
         IGeometryTransformService geometryTransformService)
-    : IGeoService
+    : IGeoComponentService
 {
     private readonly GeoJsonReader _geoJsonReader = geoJsonReader;
     private readonly GeoJsonWriter _geoJsonWriter = geoJsonWriter;
