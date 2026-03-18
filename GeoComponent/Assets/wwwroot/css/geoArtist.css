@@ -22,3 +22,8 @@
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+.geoartist-geojson-output[data-geoartist-invalid="true"] {
+    border-color: #c62828;
+    outline-color: #c62828;
+}

@@ -1,6 +1,7 @@
 window.GeoArtist = (function () {
     const maps = {};
     const layers = {};
+    const editors = {};
 
     function ensureMap(options) {
         if (!options || !options.mapId) {
@@ -64,6 +65,11 @@ window.GeoArtist = (function () {
         if (typeof geoJson === "string") {
             try {
                 const parsed = JSON.parse(geoJson);
+
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+
                 return [parsed];
             } catch (error) {
                 console.error("GeoArtist.normalizeGeoJsonInput: invalid geoJson string.", error);
@@ -78,23 +84,63 @@ window.GeoArtist = (function () {
         return [];
     }
 
-    function renderMapFromPayload(payload) {
-        if (!payload || !payload.mapOptions) {
-            console.error("GeoArtist.renderMapFromPayload: payload.mapOptions is required.");
-            return null;
+    function toEditableJsonText(geoJson) {
+        if (!geoJson) {
+            return "";
         }
 
-        const options = payload.mapOptions;
+        if (typeof geoJson === "string") {
+            try {
+                const parsed = JSON.parse(geoJson);
+                return JSON.stringify(parsed, null, 2);
+            } catch {
+                return geoJson;
+            }
+        }
+
+        try {
+            return JSON.stringify(geoJson, null, 2);
+        } catch {
+            return "";
+        }
+    }
+
+    function tryParseEditorText(text) {
+        if (!text || !text.trim()) {
+            return { ok: true, value: [] };
+        }
+
+        try {
+            const parsed = JSON.parse(text);
+
+            if (Array.isArray(parsed)) {
+                return { ok: true, value: parsed };
+            }
+
+            return { ok: true, value: [parsed] };
+        } catch (error) {
+            return { ok: false, error };
+        }
+    }
+
+    function buildGeoJsonLayer(item, options) {
+        return L.geoJSON(item, {
+            style: {
+                color: options.polygonColor ?? "#3388ff",
+                opacity: options.polygonOpacity ?? 0.4
+            }
+        });
+    }
+
+    function renderGeoItems(mapId, geoItems, options) {
         const map = ensureMap(options);
 
         if (!map) {
             return null;
         }
 
-        const mapId = options.mapId;
         clearShapes(mapId);
 
-        const geoItems = normalizeGeoJsonInput(payload.geoJson);
         const featureLayers = [];
         let combinedBounds = null;
 
@@ -106,14 +152,9 @@ window.GeoArtist = (function () {
             let layer;
 
             try {
-                layer = L.geoJSON(item, {
-                    style: {
-                        color: options.polygonColor ?? "#3388ff",
-                        opacity: options.polygonOpacity ?? 0.4
-                    }
-                });
+                layer = buildGeoJsonLayer(item, options);
             } catch (error) {
-                console.error("GeoArtist.renderMapFromPayload: failed to render GeoJSON.", error, item);
+                console.error("GeoArtist.renderGeoItems: failed to render GeoJSON.", error, item);
                 continue;
             }
 
@@ -121,6 +162,7 @@ window.GeoArtist = (function () {
 
             if (typeof layer.getBounds === "function") {
                 const bounds = layer.getBounds();
+
                 if (bounds && bounds.isValid && bounds.isValid()) {
                     if (combinedBounds === null) {
                         combinedBounds = bounds;
@@ -139,6 +181,120 @@ window.GeoArtist = (function () {
         }
 
         return map;
+    }
+
+    function renderMapFromPayload(payload) {
+        if (!payload || !payload.mapOptions) {
+            console.error("GeoArtist.renderMapFromPayload: payload.mapOptions is required.");
+            return null;
+        }
+
+        const options = payload.mapOptions;
+        const mapId = options.mapId;
+        const geoItems = normalizeGeoJsonInput(payload.geoJson);
+
+        return renderGeoItems(mapId, geoItems, options);
+    }
+
+    function getEditorOutputElement(mapId) {
+        return document.getElementById(`${mapId}-geojson-output`);
+    }
+
+    function setEditorStatus(outputElement, isInvalid) {
+        if (!outputElement) {
+            return;
+        }
+
+        if (isInvalid) {
+            outputElement.setAttribute("data-geoartist-invalid", "true");
+        } else {
+            outputElement.removeAttribute("data-geoartist-invalid");
+        }
+    }
+
+    function disposeEditor(mapId) {
+        const editor = editors[mapId];
+
+        if (!editor) {
+            return;
+        }
+
+        if (editor.outputElement && editor.inputHandler) {
+            editor.outputElement.removeEventListener("input", editor.inputHandler);
+        }
+
+        delete editors[mapId];
+    }
+
+    function initializeEditorState(payload) {
+        const options = payload.mapOptions;
+        const mapId = options.mapId;
+        const outputElement = getEditorOutputElement(mapId);
+
+        if (!outputElement) {
+            console.error("GeoArtist.initializeEditorState: editor output element not found:", `${mapId}-geojson-output`);
+            return null;
+        }
+
+        disposeEditor(mapId);
+
+        const editorState = {
+            mapId,
+            outputElement,
+            payload,
+            lastValidGeoItems: normalizeGeoJsonInput(payload.geoJson)
+        };
+
+        outputElement.value = toEditableJsonText(payload.geoJson);
+        setEditorStatus(outputElement, false);
+
+        editorState.inputHandler = function () {
+            const parseResult = tryParseEditorText(outputElement.value);
+
+            if (!parseResult.ok) {
+                setEditorStatus(outputElement, true);
+                return;
+            }
+
+            setEditorStatus(outputElement, false);
+
+            editorState.lastValidGeoItems = parseResult.value;
+            payload.geoJson = parseResult.value;
+
+            renderGeoItems(mapId, parseResult.value, options);
+        };
+
+        outputElement.addEventListener("input", editorState.inputHandler);
+        editors[mapId] = editorState;
+
+        return editorState;
+    }
+
+    function renderEditorFromPayload(payload) {
+        if (!payload || !payload.mapOptions) {
+            console.error("GeoArtist.renderEditorFromPayload: payload.mapOptions is required.");
+            return null;
+        }
+
+        const options = payload.mapOptions;
+        const mapId = options.mapId;
+
+        const editorState = initializeEditorState(payload);
+        const initialGeoItems = editorState?.lastValidGeoItems ?? normalizeGeoJsonInput(payload.geoJson);
+
+        return renderGeoItems(mapId, initialGeoItems, options);
+    }
+
+    function getMap(mapId) {
+        return maps[mapId] ?? null;
+    }
+
+    function getLayer(mapId) {
+        return layers[mapId] ?? null;
+    }
+
+    function getEditor(mapId) {
+        return editors[mapId] ?? null;
     }
 
     function bootstrap(payload) {
@@ -161,7 +317,7 @@ window.GeoArtist = (function () {
                 return renderMapFromPayload(payload);
 
             case "editor":
-                return renderMapFromPayload(payload); //♦placeholder♦
+                return renderEditorFromPayload(payload);
 
             default:
                 console.error("GeoArtist.bootstrap: unsupported mode:", payload.mode);
@@ -174,7 +330,15 @@ window.GeoArtist = (function () {
         ensureMap,
         clearShapes,
         renderMapFromPayload,
+        renderEditorFromPayload,
+        normalizeGeoJsonInput,
+        toEditableJsonText,
+        tryParseEditorText,
+        getMap,
+        getLayer,
+        getEditor,
         maps,
-        layers
+        layers,
+        editors
     };
 })();
