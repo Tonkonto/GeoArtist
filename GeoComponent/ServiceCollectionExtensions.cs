@@ -1,6 +1,7 @@
 ﻿using GeoComponent.Abstractions;
 using GeoComponent.Contracts;
 using GeoComponent.Core.Services;
+using GeoComponent.Hosting.AspNetCore;
 using GeoComponent.Rendering;
 using GeoComponent.Rendering.Html;
 using GeoComponent.Rendering.Scripts;
@@ -8,10 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GeoComponent;
 
+// ♦todo♦ Test Summaries
 public static class ServiceCollectionExtensions
 {
     // ===== Public Methods =====
-// ♦todo♦ Test Summaries
     /// <summary>
     /// Registers GeoComponent with default configuration.
     /// </summary>
@@ -47,6 +48,8 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IGeoRendererBridge, GeoRendererBridge>();
         services.AddSingleton<IGeoComponent, GeoComponentService>();
+
+        services.AddSingleton<AspNetCoreGeoHtmlWriter>();
 
         return services;
     }
