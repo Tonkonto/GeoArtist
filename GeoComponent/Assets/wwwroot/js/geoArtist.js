@@ -1,10 +1,10 @@
-window.geoComponent = {
-    maps: {},
-    layers: {},
+window.GeoArtist = (function () {
+    const maps = {};
+    const layers = {};
 
-    ensureMap: function (options) {
+    function ensureMap(options) {
         if (!options || !options.mapId) {
-            console.error("geoComponent.ensureMap: options.mapId is required.");
+            console.error("GeoArtist.ensureMap: options.mapId is required.");
             return null;
         }
 
@@ -12,12 +12,12 @@ window.geoComponent = {
         const mapElement = document.getElementById(mapId);
 
         if (!mapElement) {
-            console.error("geoComponent.ensureMap: map element not found:", mapId);
+            console.error("GeoArtist.ensureMap: map element not found:", mapId);
             return null;
         }
 
-        if (this.maps[mapId]) {
-            return this.maps[mapId];
+        if (maps[mapId]) {
+            return maps[mapId];
         }
 
         const map = L.map(mapId).setView(
@@ -29,80 +29,152 @@ window.geoComponent = {
             L.tileLayer(
                 options.tileLayerUrl ?? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                 {
-                    attribution: options.tileLayerAttribution
+                    attribution: options.tileLayerAttribution ?? "&copy; OpenStreetMap contributors"
                 }
             ).addTo(map);
         }
 
-        this.maps[mapId] = map;
-        this.layers[mapId] = null;
+        maps[mapId] = map;
+        layers[mapId] = null;
 
         return map;
-    },
+    }
 
-    renderMap: function (geoArray, options) {
-        const map = this.ensureMap(options);
-        if (!map) return null;
+    function clearShapes(mapId) {
+        const map = maps[mapId];
+        const layer = layers[mapId];
 
-        const mapId = options.mapId;
-
-        if (this.layers[mapId]) {
-            map.removeLayer(this.layers[mapId]);
-            this.layers[mapId] = null;
+        if (!map || !layer) {
+            return;
         }
 
-        let combinedBounds = null;
+        map.removeLayer(layer);
+        layers[mapId] = null;
+    }
+
+    function normalizeGeoJsonInput(geoJson) {
+        if (!geoJson) {
+            return [];
+        }
+
+        if (Array.isArray(geoJson)) {
+            return geoJson;
+        }
+
+        if (typeof geoJson === "string") {
+            try {
+                const parsed = JSON.parse(geoJson);
+                return [parsed];
+            } catch (error) {
+                console.error("GeoArtist.normalizeGeoJsonInput: invalid geoJson string.", error);
+                return [];
+            }
+        }
+
+        if (typeof geoJson === "object") {
+            return [geoJson];
+        }
+
+        return [];
+    }
+
+    function renderMapFromPayload(payload) {
+        if (!payload || !payload.mapOptions) {
+            console.error("GeoArtist.renderMapFromPayload: payload.mapOptions is required.");
+            return null;
+        }
+
+        const options = payload.mapOptions;
+        const map = ensureMap(options);
+
+        if (!map) {
+            return null;
+        }
+
+        const mapId = options.mapId;
+        clearShapes(mapId);
+
+        const geoItems = normalizeGeoJsonInput(payload.geoJson);
         const featureLayers = [];
+        let combinedBounds = null;
 
-        if (Array.isArray(geoArray)) {
-            geoArray.forEach(item => {
-                if (!item || !item.geoJson) return;
+        for (const item of geoItems) {
+            if (!item) {
+                continue;
+            }
 
-                let parsed;
-                try {
-                    parsed = JSON.parse(item.geoJson);
-                } catch (e) {
-                    console.error("geoComponent.renderMap: invalid geoJson", e, item);
-                    return;
-                }
+            let layer;
 
-                const layer = L.geoJSON(parsed, {
+            try {
+                layer = L.geoJSON(item, {
                     style: {
-                        color: options.polygonColor ?? "#ff0000",   //for debugging pupose if options fail quietly
-                        opacity: options.polygonOpacity ?? 0.8
+                        color: options.polygonColor ?? "#3388ff",
+                        opacity: options.polygonOpacity ?? 0.4
                     }
                 });
+            } catch (error) {
+                console.error("GeoArtist.renderMapFromPayload: failed to render GeoJSON.", error, item);
+                continue;
+            }
 
-                featureLayers.push(layer);
+            featureLayers.push(layer);
 
+            if (typeof layer.getBounds === "function") {
                 const bounds = layer.getBounds();
-                if (bounds && bounds.isValid()) {
+                if (bounds && bounds.isValid && bounds.isValid()) {
                     if (combinedBounds === null) {
                         combinedBounds = bounds;
                     } else {
                         combinedBounds.extend(bounds);
                     }
                 }
-            });
+            }
         }
 
         const group = L.featureGroup(featureLayers).addTo(map);
-        this.layers[mapId] = group;
+        layers[mapId] = group;
 
         if ((options.fitBounds ?? true) && combinedBounds && combinedBounds.isValid()) {
             map.fitBounds(combinedBounds);
         }
 
         return map;
-    },
-
-    clearShapes: function (mapId) {
-        const map = this.maps[mapId];
-        const layer = this.layers[mapId];
-
-        if (!map || !layer) return;
-
-        map.removeLayer(layer);
-        this.layers[mapId] = null;
     }
-};
+
+    function bootstrap(payload) {
+        if (!payload) {
+            console.error("GeoArtist.bootstrap: payload is required.");
+            return null;
+        }
+
+        if (!payload.mapOptions) {
+            console.error("GeoArtist.bootstrap: payload.mapOptions is required.");
+            return null;
+        }
+
+        if (!payload.mapOptions.mapId && payload.mapId) {
+            payload.mapOptions.mapId = payload.mapId;
+        }
+
+        switch ((payload.mode ?? "map").toLowerCase()) {
+            case "map":
+                return renderMapFromPayload(payload);
+
+            case "editor":
+                return renderMapFromPayload(payload); //♦placeholder♦
+
+            default:
+                console.error("GeoArtist.bootstrap: unsupported mode:", payload.mode);
+                return null;
+        }
+    }
+
+    return {
+        bootstrap,
+        ensureMap,
+        clearShapes,
+        renderMapFromPayload,
+        maps,
+        layers
+    };
+})();
