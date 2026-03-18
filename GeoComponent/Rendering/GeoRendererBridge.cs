@@ -1,8 +1,8 @@
 using GeoComponent.Abstractions;
 using GeoComponent.Contracts;
-using GeoComponent.Rendering.Assets;
 using GeoComponent.Rendering.Html;
 using GeoComponent.Rendering.Scripts;
+using Microsoft.Extensions.Options;
 
 namespace GeoComponent.Rendering;
 
@@ -12,20 +12,20 @@ public sealed class GeoRendererBridge : IGeoRendererBridge
     private readonly HtmlDocumentBuilder _htmlDocumentBuilder;
     private readonly ScriptBootstrapBuilder _scriptBootstrapBuilder;
     private readonly IGeoDataSerializer _serializer;
-    private readonly GeoAssetManifest _assetManifest;
+    private readonly GeoComponentAssetOptions _assetOptions;
 
     public GeoRendererBridge(
         HtmlTemplateBuilder htmlTemplateBuilder,
         HtmlDocumentBuilder htmlDocumentBuilder,
         ScriptBootstrapBuilder scriptBootstrapBuilder,
         IGeoDataSerializer serializer,
-        GeoAssetManifest assetManifest)
+        IOptions<GeoComponentAssetOptions> assetOptions)
     {
         _htmlTemplateBuilder = htmlTemplateBuilder;
         _htmlDocumentBuilder = htmlDocumentBuilder;
         _scriptBootstrapBuilder = scriptBootstrapBuilder;
         _serializer = serializer;
-        _assetManifest = assetManifest;
+        _assetOptions = assetOptions.Value;
     }
 
     public GeoRenderResult Render(GeoComponentPayload payload)
@@ -41,8 +41,8 @@ public sealed class GeoRendererBridge : IGeoRendererBridge
             BootstrapScript = bootstrapScript,
             MapId = payload.MapId,
             SerializedPayload = serializedPayload,
-            StylePaths = _assetManifest.StylePaths,
-            ScriptPaths = _assetManifest.ScriptPaths
+            StylePaths = new[] { _assetOptions.CssPath },
+            ScriptPaths = new[] { _assetOptions.JsPath }
         };
     }
 }
