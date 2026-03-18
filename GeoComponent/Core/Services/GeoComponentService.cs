@@ -1,105 +1,48 @@
-﻿using GeoComponent.Core.ErrorHanders;
-using GeoComponent.Core.Interfaces;
-using GeoComponent.Core.Models;
-using NetTopologySuite.Geometries;
-using NetTopologySuite.IO;
+﻿using GeoComponent.Abstractions;
+using GeoComponent.Contracts;
 
 namespace GeoComponent.Core.Services;
 
-public class GeoService(
-        GeoJsonReader geoJsonReader,
-        GeoJsonWriter geoJsonWriter,
-        WKTReader wktReader,
-        IGeometryTransformService geometryTransformService)
-    : IGeoComponentService
+public sealed class GeoComponentService(IGeoRendererBridge rendererBridge) : IGeoComponent
 {
-    private readonly GeoJsonReader _geoJsonReader = geoJsonReader;
-    private readonly GeoJsonWriter _geoJsonWriter = geoJsonWriter;
-    private readonly WKTReader _wktReader = wktReader;
-    private readonly IGeometryTransformService _geometryTransformService = geometryTransformService;
+    private readonly IGeoRendererBridge _rendererBridge = rendererBridge;
 
-
-    public GeoResult ParseGeoJson(string geoJson)
+    public GeoRenderResult RenderMap(string? geoJson, GeoMapOptions? mapOptions = null)
     {
-        if (string.IsNullOrWhiteSpace(geoJson))
-            throw new InvalidGeoJsonException("GeoJson is empty");
+        var payload = BuildPayload(
+            mode: "map",
+            geoJson: geoJson,
+            mapOptions: mapOptions,
+            editorOptions: null);
 
-        Geometry geometry;
-        try
-        {
-            geometry = _geoJsonReader.Read<Geometry>(geoJson);
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidGeoJsonException($"Invalid GeoJson: {ex.Message}");
-        }
-
-        if (geometry is null)
-            throw new InvalidGeoJsonException("Parsed geometry is null");
-
-        geometry.SRID = 4326;
-
-        ValidateGeometryType(geometry);
-
-        return BuildResult(geometry);
+        return _rendererBridge.Render(payload);
     }
 
-    public IEnumerable<GeoResult> ParseGeoJsonBatch(IEnumerable<string> geoJsonCollection)
+    public GeoRenderResult RenderEditor(string? geoJson, GeoMapOptions? mapOptions = null, GeoEditorOptions? editorOptions = null)
     {
-        foreach (var geoJson in geoJsonCollection)
-            yield return ParseGeoJson(geoJson);
+        var payload = BuildPayload(
+            mode: "editor",
+            geoJson: geoJson,
+            mapOptions: mapOptions,
+            editorOptions: editorOptions);
+
+        return _rendererBridge.Render(payload);
     }
 
-    public GeoResult ParseWkt(string wkt, int srid)
+    private static GeoComponentPayload BuildPayload(string mode, string? geoJson, GeoMapOptions? mapOptions, GeoEditorOptions? editorOptions)
     {
-        if (string.IsNullOrWhiteSpace(wkt))
-            throw new ArgumentException("WKT is empty");
+        var resolvedMapOptions = mapOptions ?? new GeoMapOptions();
 
-        Geometry geometry;
+        if (string.IsNullOrWhiteSpace(resolvedMapOptions.MapId))
+            resolvedMapOptions.MapId = "geoartist-map";    //♦todo♦ should return error instead of using hardcode
 
-        try
+        return new GeoComponentPayload
         {
-            geometry = _wktReader.Read(wkt);
-        }
-        catch (Exception ex)
-        {
-            throw new ArgumentException($"Invalid WKT: {ex.Message}");
-        }
-
-        if (geometry is null)
-            throw new ArgumentException("Parsed WKT geometry is null");
-
-        geometry.SRID = srid;
-
-        geometry = _geometryTransformService.TransformToWgs84(geometry, srid);
-
-        ValidateGeometryType(geometry);
-
-        return BuildResult(geometry);
-    }
-
-    public IEnumerable<GeoResult> ParseWktBatch(IEnumerable<string> wktCollection, int srid)
-    {
-        foreach (var wkt in wktCollection)
-            yield return ParseWkt(wkt, srid);
-    }
-
-    private static void ValidateGeometryType(Geometry geometry)
-    {
-        if (geometry is not Polygon && geometry is not MultiPolygon)
-            throw new ArgumentException($"Unsupported geometry type: {geometry.GeometryType}");
-    }
-
-    private GeoResult BuildResult(Geometry geometry)
-    {
-        return new GeoResult
-        {
-            GeometryType = geometry.GeometryType,
-            CoordinateCount = geometry.NumPoints,
-            GeoJson = _geoJsonWriter.Write(geometry),
-            BoundingBox = geometry.EnvelopeInternal,
-            Centroid = geometry.Centroid.Coordinate,
-            IsValid = geometry.IsValid
+            Mode = mode,
+            MapId = resolvedMapOptions.MapId,
+            GeoJson = geoJson ?? "",
+            MapOptions = resolvedMapOptions,
+            EditorOptions = editorOptions
         };
     }
 }

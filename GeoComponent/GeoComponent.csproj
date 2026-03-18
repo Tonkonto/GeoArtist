@@ -19,8 +19,4 @@
     <PackageReference Include="ProjNET" Version="2.1.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Views\Shared\Components\GeoMap\" />
-  </ItemGroup>
-
 </Project>
