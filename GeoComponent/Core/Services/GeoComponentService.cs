@@ -3,9 +3,10 @@ using GeoComponent.Contracts;
 
 namespace GeoComponent.Core.Services;
 
-public sealed class GeoComponentService(IGeoRendererBridge rendererBridge) : IGeoComponent
+public sealed class GeoComponentService(IGeoRendererBridge rendererBridge, GeoJsonValidationService geoJsonValidationService) : IGeoComponent
 {
     private readonly IGeoRendererBridge _rendererBridge = rendererBridge;
+    private readonly GeoJsonValidationService _geoJsonValidationService = geoJsonValidationService;
 
     public GeoRenderResult RenderMap(string? geoJson, GeoMapOptions? mapOptions = null)
     {
@@ -29,18 +30,22 @@ public sealed class GeoComponentService(IGeoRendererBridge rendererBridge) : IGe
         return _rendererBridge.Render(payload);
     }
 
-    private static GeoComponentPayload BuildPayload(string mode, string? geoJson, GeoMapOptions? mapOptions, GeoEditorOptions? editorOptions)
+    private GeoComponentPayload BuildPayload(string mode, string? geoJson, GeoMapOptions? mapOptions, GeoEditorOptions? editorOptions)
     {
         var resolvedMapOptions = mapOptions ?? new GeoMapOptions();
 
         if (string.IsNullOrWhiteSpace(resolvedMapOptions.MapId))
-            resolvedMapOptions.MapId = "geoartist-map";    //♦todo♦ should return error instead of using hardcode
+            resolvedMapOptions.MapId = "geoartist-map";
+
+        var normalizedGeoJson = _geoJsonValidationService.NormalizeForRender(
+            geoJson,
+            resolvedMapOptions.SourceSrid);
 
         return new GeoComponentPayload
         {
             Mode = mode,
             MapId = resolvedMapOptions.MapId,
-            GeoJson = geoJson ?? "",
+            GeoJson = normalizedGeoJson,
             MapOptions = resolvedMapOptions,
             EditorOptions = editorOptions
         };

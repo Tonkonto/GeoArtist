@@ -2,9 +2,9 @@
 
 namespace GeoComponent.Core.Services;
 
-internal static class SridReader
+internal static class SridResolver
 {
-    internal static CoordinateSystem? GetCSbyID(int srid)
+    internal static CoordinateSystem? GetById(int srid)
     {
         return srid switch
         {

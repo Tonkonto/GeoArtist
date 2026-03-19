@@ -1,5 +1,6 @@
 ﻿using GeoComponent.Abstractions;
 using GeoComponent.Contracts;
+using GeoComponent.Core.Interfaces;
 using GeoComponent.Core.Services;
 using GeoComponent.Hosting.AspNetCore;
 using GeoComponent.Rendering;
@@ -36,10 +37,11 @@ public static class ServiceCollectionExtensions
         return AddGeoComponentCore(services);
     }
 
-
-    // ===== Internall Funcs =====
+    // ===== Internal Funcs =====
     private static IServiceCollection AddGeoComponentCore(IServiceCollection services)
     {
+        services.AddSingleton<IGeometryTransformService, GeometryTransformService>();
+        services.AddSingleton<GeoJsonValidationService>();
         services.AddSingleton<IGeoDataSerializer, SystemTextJsonGeoDataSerializer>();
 
         services.AddSingleton<HtmlTemplateBuilder>();

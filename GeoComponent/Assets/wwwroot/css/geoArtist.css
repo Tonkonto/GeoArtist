@@ -24,6 +24,6 @@
 }
 
 .geoartist-geojson-output[data-geoartist-invalid="true"] {
-    border-color: #c62828;
-    outline-color: #c62828;
+    border: 1px solid #c62828;
+    background: rgba(198, 40, 40, 0.04);
 }

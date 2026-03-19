@@ -22,4 +22,7 @@ public sealed class GeoMapOptions
     public bool ShowTileLayer { get; set; } = true;
     public string TileLayerUrl { get; set; } = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
     public string TileLayerAttribution { get; init; } = "<a href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\" rel=\"noopener noreferrer\">&copy; OpenStreetMap</a>";
+
+    // GeoJSON data
+    public int? SourceSrid { get; set; }
 }

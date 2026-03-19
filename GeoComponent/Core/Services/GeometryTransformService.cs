@@ -20,7 +20,7 @@ public class GeometryTransformService : IGeometryTransformService
             return geometry;
         }
 
-        var source = SridReader.GetCSbyID(sourceSrid);
+        var source = SridResolver.GetById(sourceSrid);
         if (source is null)
             throw new ArgumentException($"Unsupported or unknown SRID: {sourceSrid}");
 

@@ -3,6 +3,7 @@ namespace GeoComponent.Contracts;
 public sealed class GeoEditorOptions
 {
     public bool Enabled { get; set; } = true;
+
     public bool AllowPolygon { get; set; } = true;
     public bool AllowRectangle { get; set; } = true;
     public bool AllowPolyline { get; set; } = true;
@@ -15,4 +16,7 @@ public sealed class GeoEditorOptions
     public bool AllowCut { get; set; } = false;
     public bool AllowDrag { get; set; } = false;
     public bool AllowRotate { get; set; } = false;
+
+    public bool AllowTextInputSync { get; set; } = true;
+    public bool AutoApplyTextChanges { get; set; } = true;
 }
