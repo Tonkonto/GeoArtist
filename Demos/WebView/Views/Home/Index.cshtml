@@ -85,11 +85,11 @@
 <p class="text-muted">Карта и редактор рендерятся из GeoComponent. WebView выступает только как demo-host.</p>
 
 <div class="d-flex gap-2 flex-wrap mb-3">
-    <button class="btn btn-sm btn-primary" type="button" onclick="renderFromController()">GET /Home/TestPolygon</button>
+    <button class="btn btn-sm btn-outline-primary" type="button" onclick="renderFromController()">GET /Home/TestPolygon</button>
     <button class="btn btn-sm btn-outline-primary" type="button" onclick="postGeoJsonSingle()">POST /api/geo/geojson</button>
     <button class="btn btn-sm btn-outline-primary" type="button" onclick="postGeoJsonBatch()">POST /api/geo/geojson/batch</button>
-    <button class="btn btn-sm btn-outline-secondary" type="button" onclick="postWktSingle()">POST /api/geo/wkt</button>
-    <button class="btn btn-sm btn-outline-secondary" type="button" onclick="postWktBatch()">POST /api/geo/wkt/batch</button>
+    <button class="btn btn-sm btn-outline-info" type="button" onclick="postWktSingle()">POST /api/geo/wkt</button>
+    <button class="btn btn-sm btn-outline-info" type="button" onclick="postWktBatch()">POST /api/geo/wkt/batch</button>
 </div>
 
 <div class="row g-3 mb-4">
@@ -129,6 +129,15 @@ function setResponse(data) {
     box.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
 }
 
+function canRenderWithGeoArtist() {
+    if (window.GeoArtist && typeof window.GeoArtist.renderMapFromPayload === "function") {
+        return true;
+    }
+
+    setResponse("GeoArtist runtime is unavailable. Check _content/GeoComponent asset loading in DevTools.");
+    return false;
+}
+
 async function requestJson(url, payload) {
     setRequest(url, payload);
 
@@ -157,6 +166,10 @@ async function requestJson(url, payload) {
 }
 
 function renderApiResultToMap(data) {
+    if (!canRenderWithGeoArtist()) {
+        return;
+    }
+
     const items = Array.isArray(data) ? data : [data];
     const geoItems = items
         .filter(x => x && x.geoJson)
@@ -181,6 +194,10 @@ function renderApiResultToMap(data) {
 
 async function renderFromController() {
     const data = await requestJson("/Home/TestPolygon", null);
+
+    if (!canRenderWithGeoArtist()) {
+        return;
+    }
 
     window.GeoArtist.renderMapFromPayload({
         mode: "map",
