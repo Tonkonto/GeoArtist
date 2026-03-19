@@ -3,6 +3,7 @@ using GeoComponent.Contracts;
 using GeoComponent.Core.Interfaces;
 using GeoComponent.Core.Services;
 using GeoComponent.Hosting.AspNetCore;
+using GeoComponent.Hosting.Desktop;
 using GeoComponent.Rendering;
 using GeoComponent.Rendering.Html;
 using GeoComponent.Rendering.Scripts;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GeoComponent;
 
-// ♦todo♦ Test Summaries
 public static class ServiceCollectionExtensions
 {
     // ===== Public Methods =====
@@ -52,6 +52,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGeoComponent, GeoComponentService>();
 
         services.AddSingleton<AspNetCoreGeoHtmlWriter>();
+        services.AddSingleton<VirtualHostPageProvider>();
+        services.AddSingleton<WebViewHostBridge>();
 
         return services;
     }
