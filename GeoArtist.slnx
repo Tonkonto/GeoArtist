@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="Demos/WebView/WebView.csproj" />
+  <Project Path="Desktop/Desktop.csproj" Id="e66a1dfc-4f3b-4eae-b390-69728816af4b" />
   <Project Path="GeoComponent/GeoComponent.csproj" />
-  <Project Path="WebView/WebView.csproj" />
 </Solution>
