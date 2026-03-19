@@ -2,12 +2,15 @@
 using GeoComponent.Contracts;
 using GeoComponent.Hosting.Desktop;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
 namespace Desktop;
 
 public partial class Form1 : Form
 {
+    private const string DesktopAssetsHost = "geoartist.local";
+
     private readonly ServiceProvider _serviceProvider;
     private readonly WebViewHostBridge _webViewHostBridge;
 
@@ -69,7 +72,24 @@ public partial class Form1 : Form
         InitializeComponent();
 
         var services = new ServiceCollection();
-        services.AddGeoComponent();
+        services.AddGeoComponent(options =>
+        {
+            options.CssPaths =
+            [
+                $"https://{DesktopAssetsHost}/css/geoArtist.css"
+            ];
+
+            options.JsPaths =
+            [
+                $"https://{DesktopAssetsHost}/js/geoArtist.state.js",
+                $"https://{DesktopAssetsHost}/js/geoArtist.events.js",
+                $"https://{DesktopAssetsHost}/js/geoArtist.geojson.js",
+                $"https://{DesktopAssetsHost}/js/geoArtist.map.js",
+                $"https://{DesktopAssetsHost}/js/geoArtist.geoman.js",
+                $"https://{DesktopAssetsHost}/js/geoArtist.editor.js",
+                $"https://{DesktopAssetsHost}/js/geoArtist.js"
+            ];
+        });
 
         _serviceProvider = services.BuildServiceProvider();
         _webViewHostBridge = _serviceProvider.GetRequiredService<WebViewHostBridge>();
@@ -124,6 +144,34 @@ public partial class Form1 : Form
             return;
 
         await _webView.EnsureCoreWebView2Async();
+        var core = _webView.CoreWebView2;
+
+        if (core is null)
+            throw new InvalidOperationException("WebView2 initialization failed.");
+
+        core.SetVirtualHostNameToFolderMapping(
+            DesktopAssetsHost,
+            ResolveDesktopWwwRootPath(),
+            CoreWebView2HostResourceAccessKind.Allow);
+
+        _webView.DefaultBackgroundColor = Color.White;
+    }
+
+    private static string ResolveDesktopWwwRootPath()
+    {
+        var outputRoot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
+
+        if (Directory.Exists(outputRoot))
+            return outputRoot;
+
+        var repoRootFallback = Path.GetFullPath(
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "GeoComponent", "wwwroot"));
+
+        if (Directory.Exists(repoRootFallback))
+            return repoRootFallback;
+
+        throw new DirectoryNotFoundException(
+            $"GeoComponent web assets folder was not found. Checked: '{outputRoot}' and '{repoRootFallback}'.");
     }
 
     private async Task LoadMapModeAsync()
