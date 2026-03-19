@@ -1,5 +1,18 @@
+﻿window.GeoArtist = window.GeoArtist || {};
 
-window.GeoArtist = window.GeoArtist || {};
+function disposeEditorIfAny(payload) {
+    const mapId = payload?.mapOptions?.mapId ?? payload?.mapId;
+
+    if (!mapId) {
+        return;
+    }
+
+    const editorRuntime = window.GeoArtist.editorRuntime;
+
+    if (editorRuntime && typeof editorRuntime.disposeEditor === "function") {
+        editorRuntime.disposeEditor(mapId);
+    }
+}
 
 window.GeoArtist.bootstrap = function (payload) {
     if (!payload) {
@@ -18,6 +31,7 @@ window.GeoArtist.bootstrap = function (payload) {
 
     switch ((payload.mode ?? "map").toLowerCase()) {
         case "map":
+            disposeEditorIfAny(payload);
             return window.GeoArtist.mapRuntime.renderMapFromPayload(payload);
 
         case "editor":
@@ -43,6 +57,23 @@ window.GeoArtist.renderMapFromPayload = function (payload) {
 
 window.GeoArtist.renderEditorFromPayload = function (payload) {
     return window.GeoArtist.editorRuntime.renderEditorFromPayload(payload);
+};
+
+window.GeoArtist.renderMap = function (geoJson, options) {
+    return window.GeoArtist.renderMapFromPayload({
+        mode: "map",
+        mapOptions: options,
+        geoJson: geoJson
+    });
+};
+
+window.GeoArtist.renderEditor = function (geoJson, mapOptions, editorOptions) {
+    return window.GeoArtist.renderEditorFromPayload({
+        mode: "editor",
+        mapOptions: mapOptions,
+        editorOptions: editorOptions,
+        geoJson: geoJson
+    });
 };
 
 window.GeoArtist.normalizeGeoJsonInput = function (geoJson) {
@@ -86,3 +117,10 @@ Object.defineProperty(window.GeoArtist, "editors", {
         return window.GeoArtist.state.editors;
     }
 });
+
+// Legacy compatibility for previous demo pages.
+window.geoComponent = window.geoComponent || {};
+
+window.geoComponent.renderMap = function (geoItems, options) {
+    return window.GeoArtist.renderMap(geoItems, options);
+};
