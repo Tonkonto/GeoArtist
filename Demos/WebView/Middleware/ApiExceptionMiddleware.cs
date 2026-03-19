@@ -1,10 +1,10 @@
-﻿using GeoComponent.Core.ErrorHanders;
+﻿using GeoComponent.Core.Exceptions;
 using System.Text.Json;
 using WebView.Models.API;
 
 namespace WebView.Middleware;
 
-public class ApiExceptionMiddleware(RequestDelegate next)
+public sealed class ApiExceptionMiddleware(RequestDelegate next)
 {
     private readonly RequestDelegate _next = next;
 
@@ -16,7 +16,7 @@ public class ApiExceptionMiddleware(RequestDelegate next)
         }
         catch (InvalidGeoJsonException ex)
         {
-            await WriteError(context, StatusCodes.Status400BadRequest, "Invalid GeoJson", ex.Message);
+            await WriteError(context, StatusCodes.Status400BadRequest, "Invalid GeoJSON", ex.Message);
         }
         catch (ArgumentException ex)
         {
@@ -43,3 +43,4 @@ public class ApiExceptionMiddleware(RequestDelegate next)
         await context.Response.WriteAsync(json);
     }
 }
+
