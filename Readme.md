@@ -83,7 +83,7 @@ If you have multiple components on one page, include assets once (`include-asset
 
 ## Desktop Demo
 
-`Desktop` project uses `WebViewHostBridge` + `VirtualHostPageProvider` from `GeoComponent.Hosting.Desktop`.
+`Desktop` project uses `WebViewHostBridge` with WebView2 host-message rendering (`host.html` + `geoartist.render`).
 
 - `Map` button renders map mode
 - `Editor` button renders editor mode

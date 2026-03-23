@@ -76,7 +76,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGeoComponent, GeoComponentService>();
 
         services.AddSingleton<AspNetCoreGeoHtmlWriter>();
-        services.AddSingleton<VirtualHostPageProvider>();
         services.AddSingleton<WebViewHostBridge>();
 
         return services;
