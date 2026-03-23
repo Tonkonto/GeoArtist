@@ -9,12 +9,11 @@ namespace Desktop;
 
 public partial class Form1 : Form
 {
-    private const string DesktopAssetsHost = "geoartist.local";
-    private const string DesktopAssetsReferer = $"https://{DesktopAssetsHost}/";
     private bool _networkHooksRegistered;
 
     private readonly ServiceProvider _serviceProvider;
     private readonly WebViewHostBridge _webViewHostBridge;
+    private readonly GeoDesktopHostOptions _desktopHostOptions;
 
     private readonly WebView2 _webView;
     private readonly Button _mapModeButton;
@@ -74,27 +73,11 @@ public partial class Form1 : Form
         InitializeComponent();
 
         var services = new ServiceCollection();
-        services.AddGeoComponent(options =>
-        {
-            options.CssPaths =
-            [
-                $"https://{DesktopAssetsHost}/css/geoArtist.css"
-            ];
-
-            options.JsPaths =
-            [
-                $"https://{DesktopAssetsHost}/js/geoArtist.state.js",
-                $"https://{DesktopAssetsHost}/js/geoArtist.events.js",
-                $"https://{DesktopAssetsHost}/js/geoArtist.geojson.js",
-                $"https://{DesktopAssetsHost}/js/geoArtist.map.js",
-                $"https://{DesktopAssetsHost}/js/geoArtist.geoman.js",
-                $"https://{DesktopAssetsHost}/js/geoArtist.editor.js",
-                $"https://{DesktopAssetsHost}/js/geoArtist.js"
-            ];
-        });
+        services.AddGeoComponentDesktop();
 
         _serviceProvider = services.BuildServiceProvider();
         _webViewHostBridge = _serviceProvider.GetRequiredService<WebViewHostBridge>();
+        _desktopHostOptions = _serviceProvider.GetRequiredService<GeoDesktopHostOptions>();
 
         _mapModeButton = new Button { Text = "Map", Width = 80, Height = 32 };
         _editorModeButton = new Button { Text = "Editor", Width = 80, Height = 32 };
@@ -152,7 +135,7 @@ public partial class Form1 : Form
             throw new InvalidOperationException("WebView2 initialization failed.");
 
         core.SetVirtualHostNameToFolderMapping(
-            DesktopAssetsHost,
+            _desktopHostOptions.HostName,
             ResolveDesktopWwwRootPath(),
             CoreWebView2HostResourceAccessKind.Allow);
 
@@ -170,7 +153,7 @@ public partial class Form1 : Form
         _networkHooksRegistered = true;
     }
 
-    private static void OnWebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
+    private void OnWebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
     {
         if (!Uri.TryCreate(e.Request.Uri, UriKind.Absolute, out var uri))
             return;
@@ -180,7 +163,7 @@ public partial class Form1 : Form
 
         try
         {
-            e.Request.Headers.SetHeader("Referer", DesktopAssetsReferer);
+            e.Request.Headers.SetHeader("Referer", _desktopHostOptions.VirtualHostReferer);
         }
         catch
         {
