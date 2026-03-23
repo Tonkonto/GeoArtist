@@ -117,10 +117,3 @@ Object.defineProperty(window.GeoArtist, "editors", {
         return window.GeoArtist.state.editors;
     }
 });
-
-// Legacy compatibility for previous demo pages.
-window.geoComponent = window.geoComponent || {};
-
-window.geoComponent.renderMap = function (geoItems, options) {
-    return window.GeoArtist.renderMap(geoItems, options);
-};
