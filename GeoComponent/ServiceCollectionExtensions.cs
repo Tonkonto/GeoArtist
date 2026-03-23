@@ -3,6 +3,7 @@ using GeoComponent.Contracts;
 using GeoComponent.Core.Interfaces;
 using GeoComponent.Core.Services;
 using GeoComponent.Hosting.AspNetCore;
+using GeoComponent.Hosting.Desktop;
 using GeoComponent.Rendering;
 using GeoComponent.Rendering.Html;
 using GeoComponent.Rendering.Scripts;
@@ -10,7 +11,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GeoComponent;
 
-// ♦todo♦ Test Summaries
 public static class ServiceCollectionExtensions
 {
     // ===== Public Methods =====
@@ -37,6 +37,30 @@ public static class ServiceCollectionExtensions
         return AddGeoComponentCore(services);
     }
 
+    /// <summary>
+    /// Registers GeoComponent with desktop host defaults.
+    /// The desktop host uses a virtual HTTPS origin for local static assets.
+    /// </summary>
+    /// <param name="services">DI container</param>
+    /// <param name="configureDesktop">Desktop host options</param>
+    /// <returns>IServiceCollection for chaining</returns>
+    public static IServiceCollection AddGeoComponentDesktop(
+        this IServiceCollection services,
+        Action<GeoDesktopHostOptions>? configureDesktop = null)
+    {
+        var desktopOptions = new GeoDesktopHostOptions();
+        configureDesktop?.Invoke(desktopOptions);
+
+        services.AddSingleton(desktopOptions);
+
+        services.Configure<GeoComponentAssetOptions>(assets =>
+        {
+            GeoDesktopAssetDefaults.Apply(assets, desktopOptions);
+        });
+
+        return AddGeoComponentCore(services);
+    }
+
     // ===== Internal Funcs =====
     private static IServiceCollection AddGeoComponentCore(IServiceCollection services)
     {
@@ -52,6 +76,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGeoComponent, GeoComponentService>();
 
         services.AddSingleton<AspNetCoreGeoHtmlWriter>();
+        services.AddSingleton<VirtualHostPageProvider>();
+        services.AddSingleton<WebViewHostBridge>();
 
         return services;
     }

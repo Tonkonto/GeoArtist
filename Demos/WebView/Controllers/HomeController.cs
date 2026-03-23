@@ -1,14 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace WebView.Controllers;
 
-public class HomeController : Controller
+public sealed class HomeController : Controller
 {
-    /*
-     * This Controller exposes demo endpoints to GeoComponent and allows custom routes.
-     */
-
-
     public IActionResult Index()
     {
         return View();
@@ -17,27 +12,35 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult TestPolygon()
     {
-        var polygon = new
+        var payload = new
         {
-            geometryType = "Polygon",
-            coordinateCount = 5,
-            geoJson = """
+            type = "FeatureCollection",
+            features = new[]
             {
-                "type": "Polygon",
-                "coordinates": [
-                    [
-                        [74.60,42.87],
-                        [74.61,42.87],
-                        [74.61,42.88],
-                        [74.60,42.88],
-                        [74.60,42.87]
-                    ]
-                ]
+                new
+                {
+                    type = "Feature",
+                    properties = new { source = "HomeController" },
+                    geometry = new
+                    {
+                        type = "Polygon",
+                        coordinates = new[]
+                        {
+                            new[]
+                            {
+                                new[] { 74.60, 42.87 },
+                                new[] { 74.61, 42.87 },
+                                new[] { 74.61, 42.88 },
+                                new[] { 74.60, 42.88 },
+                                new[] { 74.60, 42.87 }
+                            }
+                        }
+                    }
+                }
             }
-            """,
-            isValid = true
         };
 
-        return Json(polygon);
+        return Json(payload);
     }
 }
+

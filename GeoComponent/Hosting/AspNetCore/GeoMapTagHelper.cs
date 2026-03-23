@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace GeoComponent.Hosting.AspNetCore;
 
-// ♦todo♦ Review Summaries
 /// <summary>
 /// ASP.NET Core TagHelper for rendering GeoArtist map or editor component.
 /// </summary>

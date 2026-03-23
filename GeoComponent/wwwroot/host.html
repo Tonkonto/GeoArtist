@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="origin" />
+    <title>GeoArtist Host</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.18.3/dist/leaflet-geoman.css" />
+    <link rel="stylesheet" href="./css/geoArtist.css" />
+</head>
+<body style="margin:0;">
+    <div id="geoartist-root"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.18.3/dist/leaflet-geoman.min.js"></script>
+
+    <script src="./js/geoArtist.state.js"></script>
+    <script src="./js/geoArtist.events.js"></script>
+    <script src="./js/geoArtist.geojson.js"></script>
+    <script src="./js/geoArtist.map.js"></script>
+    <script src="./js/geoArtist.geoman.js"></script>
+    <script src="./js/geoArtist.editor.js"></script>
+    <script src="./js/geoArtist.js"></script>
+
+    <script>
+        (function () {
+            function ensureContainer(payload) {
+                const mapId = payload?.mapOptions?.mapId;
+                if (!mapId) {
+                    return null;
+                }
+
+                let mapElement = document.getElementById(mapId);
+
+                if (mapElement) {
+                    return mapElement;
+                }
+
+                const root = document.getElementById("geoartist-root");
+
+                if (!root) {
+                    return null;
+                }
+
+                const shell = document.createElement("div");
+                shell.className = "geoartist-shell";
+
+                mapElement = document.createElement("div");
+                mapElement.id = mapId;
+                mapElement.className = "geoartist-map";
+                mapElement.style.height = payload.mapOptions.height ?? "600px";
+
+                shell.appendChild(mapElement);
+
+                if ((payload.mode ?? "map").toLowerCase() === "editor") {
+                    const output = document.createElement("textarea");
+                    output.id = `${mapId}-geojson-output`;
+                    output.className = "geoartist-geojson-output";
+                    shell.appendChild(output);
+                }
+
+                root.replaceChildren(shell);
+
+                return mapElement;
+            }
+
+            function bootstrapFromHostMessage(payload) {
+                if (!payload || !payload.mapOptions) {
+                    return;
+                }
+
+                ensureContainer(payload);
+
+                if (!window.GeoArtist || typeof window.GeoArtist.bootstrap !== "function") {
+                    return;
+                }
+
+                window.GeoArtist.bootstrap(payload);
+            }
+
+            if (window.chrome?.webview) {
+                window.chrome.webview.addEventListener("message", function (e) {
+                    const data = e?.data;
+
+                    if (data?.type !== "geoartist.render") {
+                        return;
+                    }
+
+                    bootstrapFromHostMessage(data.payload);
+                });
+
+                window.chrome.webview.postMessage({ type: "geoartist.host.ready" });
+            }
+        })();
+    </script>
+</body>
+</html>

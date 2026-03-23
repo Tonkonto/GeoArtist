@@ -28,6 +28,13 @@ public sealed class GeoComponentAssetOptions
         "https://unpkg.com/leaflet/dist/leaflet.js"
     ];
 
-    public List<string> GeomanCssPaths { get; set; } = [];
-    public List<string> GeomanJsPaths { get; set; } = [];
+    public List<string> GeomanCssPaths { get; set; } =
+    [
+        "https://unpkg.com/@geoman-io/leaflet-geoman-free@2.18.3/dist/leaflet-geoman.css"
+    ];
+
+    public List<string> GeomanJsPaths { get; set; } =
+    [
+        "https://unpkg.com/@geoman-io/leaflet-geoman-free@2.18.3/dist/leaflet-geoman.min.js"
+    ];
 }
