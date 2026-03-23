@@ -1,19 +1,15 @@
-﻿using GeoComponent;
+using GeoComponent;
 using GeoComponent.Contracts;
 using GeoComponent.Hosting.Desktop;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
 namespace Desktop;
 
 public partial class Form1 : Form
 {
-    private bool _networkHooksRegistered;
-
     private readonly ServiceProvider _serviceProvider;
-    private readonly WebViewHostBridge _webViewHostBridge;
-    private readonly GeoDesktopHostOptions _desktopHostOptions;
+    private readonly GeoDesktopWebViewAdapter _desktopAdapter;
 
     private readonly WebView2 _webView;
     private readonly Button _mapModeButton;
@@ -76,12 +72,13 @@ public partial class Form1 : Form
         services.AddGeoComponentDesktop();
 
         _serviceProvider = services.BuildServiceProvider();
-        _webViewHostBridge = _serviceProvider.GetRequiredService<WebViewHostBridge>();
-        _desktopHostOptions = _serviceProvider.GetRequiredService<GeoDesktopHostOptions>();
+        var webViewHostBridge = _serviceProvider.GetRequiredService<WebViewHostBridge>();
+        var desktopHostOptions = _serviceProvider.GetRequiredService<GeoDesktopHostOptions>();
 
         _mapModeButton = new Button { Text = "Map", Width = 80, Height = 32 };
         _editorModeButton = new Button { Text = "Editor", Width = 80, Height = 32 };
         _webView = new WebView2 { Dock = DockStyle.Fill };
+        _desktopAdapter = new GeoDesktopWebViewAdapter(_webView, webViewHostBridge, desktopHostOptions);
 
         BuildLayout();
 
@@ -92,13 +89,14 @@ public partial class Form1 : Form
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
+        _desktopAdapter.Dispose();
         _serviceProvider.Dispose();
         base.OnFormClosed(e);
     }
 
     private async void OnShown(object? sender, EventArgs e)
     {
-        await EnsureWebViewReadyAsync();
+        await _desktopAdapter.EnsureReadyAsync();
         await LoadMapModeAsync();
     }
 
@@ -123,101 +121,18 @@ public partial class Form1 : Form
         Controls.Add(topPanel);
     }
 
-    private async Task EnsureWebViewReadyAsync()
-    {
-        if (_webView.CoreWebView2 is not null)
-            return;
-
-        await _webView.EnsureCoreWebView2Async();
-        var core = _webView.CoreWebView2;
-
-        if (core is null)
-            throw new InvalidOperationException("WebView2 initialization failed.");
-
-        core.SetVirtualHostNameToFolderMapping(
-            _desktopHostOptions.HostName,
-            ResolveDesktopWwwRootPath(),
-            CoreWebView2HostResourceAccessKind.Allow);
-
-        RegisterNetworkHooks(core);
-        _webView.DefaultBackgroundColor = Color.White;
-    }
-
-    private void RegisterNetworkHooks(CoreWebView2 core)
-    {
-        if (_networkHooksRegistered)
-            return;
-
-        core.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.Image);
-        core.WebResourceRequested += OnWebResourceRequested;
-        _networkHooksRegistered = true;
-    }
-
-    private void OnWebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
-    {
-        if (!Uri.TryCreate(e.Request.Uri, UriKind.Absolute, out var uri))
-            return;
-
-        if (!IsOpenStreetMapHost(uri.Host))
-            return;
-
-        try
-        {
-            e.Request.Headers.SetHeader("Referer", _desktopHostOptions.VirtualHostReferer);
-        }
-        catch
-        {
-            // If headers are locked for a specific request, continue without crashing the desktop demo.
-        }
-    }
-
-    private static bool IsOpenStreetMapHost(string host)
-    {
-        if (host.Contains("tile.openstreetmap.org", StringComparison.OrdinalIgnoreCase))
-            return true;
-
-        return string.Equals(host, "www.openstreetmap.org", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string ResolveDesktopWwwRootPath()
-    {
-        var outputRoot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
-
-        if (Directory.Exists(outputRoot))
-            return outputRoot;
-
-        var repoRootFallback = Path.GetFullPath(
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "GeoComponent", "wwwroot"));
-
-        if (Directory.Exists(repoRootFallback))
-            return repoRootFallback;
-
-        throw new DirectoryNotFoundException(
-            $"GeoComponent web assets folder was not found. Checked: '{outputRoot}' and '{repoRootFallback}'.");
-    }
-
     private async Task LoadMapModeAsync()
     {
-        await EnsureWebViewReadyAsync();
-
-        var html = _webViewHostBridge.BuildMapPage(
+        await _desktopAdapter.RenderMapAsync(
             geoJson: DemoGeoJson,
-            mapOptions: _mapOptions,
-            title: "GeoArtist Desktop - Map");
-
-        _webView.NavigateToString(html);
+            mapOptions: _mapOptions);
     }
 
     private async Task LoadEditorModeAsync()
     {
-        await EnsureWebViewReadyAsync();
-
-        var html = _webViewHostBridge.BuildEditorPage(
+        await _desktopAdapter.RenderEditorAsync(
             geoJson: DemoGeoJson,
             mapOptions: _mapOptions,
-            editorOptions: _editorOptions,
-            title: "GeoArtist Desktop - Editor");
-
-        _webView.NavigateToString(html);
+            editorOptions: _editorOptions);
     }
 }
