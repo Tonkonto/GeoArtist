@@ -1,12 +1,11 @@
 using System.Text.Json;
 using GeoComponent.Contracts;
-using GeoComponent.Hosting.Desktop;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
-namespace Desktop;
+namespace GeoComponent.Hosting.Desktop;
 
-internal sealed class GeoDesktopWebViewAdapter : IDisposable
+public sealed class GeoDesktopWebViewAdapter : IDisposable
 {
     private const string HostReadyMessageType = "geoartist.host.ready";
 
