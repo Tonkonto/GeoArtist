@@ -26,6 +26,10 @@
 
     <script>
         (function () {
+            function hasFunction(target, methodName) {
+                return !!target && typeof target[methodName] === "function";
+            }
+
             function ensureContainer(payload) {
                 const mapId = payload?.mapOptions?.mapId;
                 if (!mapId) {
@@ -92,7 +96,7 @@
 
                 ensureContainer(payload);
 
-                if (!window.GeoArtist || typeof window.GeoArtist.bootstrap !== "function") {
+                if (!hasFunction(window.GeoArtist, "bootstrap")) {
                     return;
                 }
 

@@ -1,4 +1,18 @@
-﻿window.GeoArtist = window.GeoArtist || {};
+window.GeoArtist = window.GeoArtist || {};
+
+function invokeIfFunction(target, methodName, args) {
+    if (!target) {
+        return undefined;
+    }
+
+    const method = target[methodName];
+
+    if (typeof method !== "function") {
+        return undefined;
+    }
+
+    return method.apply(target, args ?? []);
+}
 
 function disposeEditorIfAny(payload) {
     const mapId = payload?.mapOptions?.mapId ?? payload?.mapId;
@@ -8,10 +22,7 @@ function disposeEditorIfAny(payload) {
     }
 
     const editorRuntime = window.GeoArtist.editorRuntime;
-
-    if (editorRuntime && typeof editorRuntime.disposeEditor === "function") {
-        editorRuntime.disposeEditor(mapId);
-    }
+    invokeIfFunction(editorRuntime, "disposeEditor", [mapId]);
 }
 
 window.GeoArtist.bootstrap = function (payload) {

@@ -5,6 +5,20 @@ window.GeoArtist.mapRuntime = (function () {
     const events = window.GeoArtist.events;
     const geoJson = window.GeoArtist.geoJson;
 
+    function invokeIfFunction(target, methodName, args) {
+        if (!target) {
+            return undefined;
+        }
+
+        const method = target[methodName];
+
+        if (typeof method !== "function") {
+            return undefined;
+        }
+
+        return method.apply(target, args ?? []);
+    }
+
     function ensureMap(options) {
         if (!options || !options.mapId) {
             console.error("GeoArtist.ensureMap: options.mapId is required.");
@@ -69,31 +83,27 @@ window.GeoArtist.mapRuntime = (function () {
             return currentBounds;
         }
 
-        if (typeof layer.getBounds === "function") {
-            const bounds = layer.getBounds();
+        const bounds = invokeIfFunction(layer, "getBounds");
 
-            if (bounds && bounds.isValid && bounds.isValid()) {
-                if (currentBounds === null) {
-                    return bounds;
-                }
-
-                currentBounds.extend(bounds);
-                return currentBounds;
+        if (bounds && bounds.isValid && bounds.isValid()) {
+            if (currentBounds === null) {
+                return bounds;
             }
+
+            currentBounds.extend(bounds);
+            return currentBounds;
         }
 
-        if (typeof layer.getLatLng === "function") {
-            const latLng = layer.getLatLng();
+        const latLng = invokeIfFunction(layer, "getLatLng");
 
-            if (latLng) {
-                const pointBounds = L.latLngBounds([latLng, latLng]);
+        if (latLng) {
+            const pointBounds = L.latLngBounds([latLng, latLng]);
 
-                if (currentBounds === null) {
-                    return pointBounds;
-                }
-
-                currentBounds.extend(pointBounds);
+            if (currentBounds === null) {
+                return pointBounds;
             }
+
+            currentBounds.extend(pointBounds);
         }
 
         return currentBounds;

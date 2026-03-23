@@ -2,6 +2,29 @@ window.GeoArtist = window.GeoArtist || {};
 
 window.GeoArtist.geoman = (function () {
     const events = window.GeoArtist.events;
+    const geomanDisableMethods = [
+        "disableGlobalDrawMode",
+        "disableGlobalEditMode",
+        "disableGlobalDragMode",
+        "disableGlobalRemovalMode",
+        "disableGlobalCutMode",
+        "disableGlobalRotateMode",
+        "removeControls"
+    ];
+
+    function invokeIfFunction(target, methodName, args) {
+        if (!target) {
+            return undefined;
+        }
+
+        const method = target[methodName];
+
+        if (typeof method !== "function") {
+            return undefined;
+        }
+
+        return method.apply(target, args ?? []);
+    }
 
     function enableGeoman(editorState) {
         if (!editorState || !editorState.map) {
@@ -98,33 +121,9 @@ window.GeoArtist.geoman = (function () {
         }
 
         try {
-            if (typeof map.pm.disableGlobalDrawMode === "function") {
-                map.pm.disableGlobalDrawMode();
-            }
-
-            if (typeof map.pm.disableGlobalEditMode === "function") {
-                map.pm.disableGlobalEditMode();
-            }
-
-            if (typeof map.pm.disableGlobalDragMode === "function") {
-                map.pm.disableGlobalDragMode();
-            }
-
-            if (typeof map.pm.disableGlobalRemovalMode === "function") {
-                map.pm.disableGlobalRemovalMode();
-            }
-
-            if (typeof map.pm.disableGlobalCutMode === "function") {
-                map.pm.disableGlobalCutMode();
-            }
-
-            if (typeof map.pm.disableGlobalRotateMode === "function") {
-                map.pm.disableGlobalRotateMode();
-            }
-
-            if (typeof map.pm.removeControls === "function") {
-                map.pm.removeControls();
-            }
+            geomanDisableMethods.forEach(function (methodName) {
+                invokeIfFunction(map.pm, methodName);
+            });
         } catch (error) {
             console.error("GeoArtist.disableGeoman: failed to disable geoman controls.", error);
         }
