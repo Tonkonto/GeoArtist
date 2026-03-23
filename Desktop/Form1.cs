@@ -10,6 +10,8 @@ namespace Desktop;
 public partial class Form1 : Form
 {
     private const string DesktopAssetsHost = "geoartist.local";
+    private const string DesktopAssetsReferer = $"https://{DesktopAssetsHost}/";
+    private bool _networkHooksRegistered;
 
     private readonly ServiceProvider _serviceProvider;
     private readonly WebViewHostBridge _webViewHostBridge;
@@ -154,7 +156,44 @@ public partial class Form1 : Form
             ResolveDesktopWwwRootPath(),
             CoreWebView2HostResourceAccessKind.Allow);
 
+        RegisterNetworkHooks(core);
         _webView.DefaultBackgroundColor = Color.White;
+    }
+
+    private void RegisterNetworkHooks(CoreWebView2 core)
+    {
+        if (_networkHooksRegistered)
+            return;
+
+        core.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.Image);
+        core.WebResourceRequested += OnWebResourceRequested;
+        _networkHooksRegistered = true;
+    }
+
+    private static void OnWebResourceRequested(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
+    {
+        if (!Uri.TryCreate(e.Request.Uri, UriKind.Absolute, out var uri))
+            return;
+
+        if (!IsOpenStreetMapHost(uri.Host))
+            return;
+
+        try
+        {
+            e.Request.Headers.SetHeader("Referer", DesktopAssetsReferer);
+        }
+        catch
+        {
+            // If headers are locked for a specific request, continue without crashing the desktop demo.
+        }
+    }
+
+    private static bool IsOpenStreetMapHost(string host)
+    {
+        if (host.Contains("tile.openstreetmap.org", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return string.Equals(host, "www.openstreetmap.org", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string ResolveDesktopWwwRootPath()
