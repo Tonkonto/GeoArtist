@@ -57,10 +57,11 @@ public sealed class GeoRendererBridge(  HtmlTemplateBuilder htmlTemplateBuilder,
         HashSet<string> seen = new(StringComparer.Ordinal);
 
         AddRangeIfSet(result, _assetOptions.LeafletJsPaths, seen);
-        AddRangeIfSet(result, _assetOptions.JsPaths, seen);
 
         if (payload.IsEditable)
             AddRangeIfSet(result, _assetOptions.GeomanJsPaths, seen);
+
+        AddRangeIfSet(result, _assetOptions.JsPaths, seen);
 
         return result;
     }

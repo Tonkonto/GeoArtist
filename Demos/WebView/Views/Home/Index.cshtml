@@ -39,7 +39,10 @@
         InitialLat = 42.87,
         InitialLng = 74.60,
         InitialZoom = 12,
-        FitBounds = true
+        MaxZoom = 19,
+        FitBounds = true,
+        PolygonColor = "#2563eb",
+        PolygonOpacity = 0.45
     };
 
     var editorMapOptions = new GeoMapOptions
@@ -49,7 +52,10 @@
         InitialLat = 42.87,
         InitialLng = 74.60,
         InitialZoom = 12,
-        FitBounds = true
+        MaxZoom = 19,
+        FitBounds = true,
+        PolygonColor = "#0f766e",
+        PolygonOpacity = 0.45
     };
 
     var editorOptions = new GeoEditorOptions
@@ -61,28 +67,22 @@
         AllowMarker = true,
         AllowEdit = true,
         AllowDelete = true,
+        SnapSensitivity = 20,
+        NodeSize = 10,
+        DrawColor = "#e11d48",
+        DrawOpacity = 1.0,
         AllowTextInputSync = true,
         AutoApplyTextChanges = true
     };
 
-    var mapOptionsJson = JsonSerializer.Serialize(new
-    {
-        mapId = mapOptions.MapId,
-        height = mapOptions.Height,
-        initialLat = mapOptions.InitialLat,
-        initialLng = mapOptions.InitialLng,
-        initialZoom = mapOptions.InitialZoom,
-        fitBounds = mapOptions.FitBounds,
-        polygonColor = mapOptions.PolygonColor,
-        polygonOpacity = mapOptions.PolygonOpacity,
-        showTileLayer = mapOptions.ShowTileLayer,
-        tileLayerUrl = mapOptions.TileLayerUrl,
-        tileLayerAttribution = mapOptions.TileLayerAttribution
-    });
 }
 
 <h2 class="mb-3">GeoArtist Demo</h2>
 <p class="text-muted">Карта и редактор рендерятся из GeoComponent. WebView выступает только как demo-host.</p>
+<p class="text-muted">
+    Editor demo: preview во время рисования берёт <code>DrawColor/DrawOpacity</code>,
+    а сохранённая фигура получает стиль из <code>GeoMapOptions.PolygonColor/PolygonOpacity</code>.
+</p>
 
 <div class="d-flex gap-2 flex-wrap mb-3">
     <button class="btn btn-sm btn-outline-primary" type="button" onclick="renderFromController()">GET /Home/TestPolygon</button>
@@ -117,7 +117,8 @@
 
 @section Scripts {
 <script>
-const mapOptions = @Html.Raw(mapOptionsJson);
+const mapId = "demo-map";
+const editorMapId = "demo-editor";
 
 function setRequest(url, payload) {
     const box = document.getElementById("requestBox");
@@ -130,12 +131,38 @@ function setResponse(data) {
 }
 
 function canRenderWithGeoArtist() {
-    if (window.GeoArtist && typeof window.GeoArtist.renderMapFromPayload === "function") {
+    if (
+        window.GeoArtist &&
+        typeof window.GeoArtist.renderMapFromPayload === "function" &&
+        typeof window.GeoArtist.renderEditorFromPayload === "function"
+    ) {
         return true;
     }
 
-    setResponse("GeoArtist runtime is unavailable. Check _content/GeoComponent asset loading in DevTools.");
+    setResponse("GeoArtist runtime is unavailable. Check asset loading in DevTools.");
     return false;
+}
+
+function resolveMapOptionsForRerender() {
+    return {
+        mapId
+    };
+}
+
+function resolveEditorRuntimeOptions() {
+    const editorState = window.GeoArtist?.getEditor?.(editorMapId);
+
+    if (editorState?.options && editorState?.editorOptions) {
+        return {
+            mapOptions: editorState.options,
+            editorOptions: editorState.editorOptions
+        };
+    }
+
+    return {
+        mapOptions: { mapId: editorMapId },
+        editorOptions: {}
+    };
 }
 
 async function requestJson(url, payload) {
@@ -165,7 +192,28 @@ async function requestJson(url, payload) {
     return data;
 }
 
-function renderApiResultToMap(data) {
+function renderGeoJsonToBothModes(geoJson) {
+    if (!canRenderWithGeoArtist()) {
+        return;
+    }
+
+    const editorRuntimeOptions = resolveEditorRuntimeOptions();
+
+    window.GeoArtist.renderMapFromPayload({
+        mode: "map",
+        mapOptions: resolveMapOptionsForRerender(),
+        geoJson
+    });
+
+    window.GeoArtist.renderEditorFromPayload({
+        mode: "editor",
+        mapOptions: editorRuntimeOptions.mapOptions,
+        editorOptions: editorRuntimeOptions.editorOptions,
+        geoJson
+    });
+}
+
+function renderApiResult(data) {
     if (!canRenderWithGeoArtist()) {
         return;
     }
@@ -182,13 +230,9 @@ function renderApiResultToMap(data) {
         })
         .filter(Boolean);
 
-    window.GeoArtist.renderMapFromPayload({
-        mode: "map",
-        mapOptions,
-        geoJson: {
-            type: "FeatureCollection",
-            features: geoItems.flatMap(item => item?.features ?? [])
-        }
+    renderGeoJsonToBothModes({
+        type: "FeatureCollection",
+        features: geoItems.flatMap(item => item?.features ?? [])
     });
 }
 
@@ -199,11 +243,7 @@ async function renderFromController() {
         return;
     }
 
-    window.GeoArtist.renderMapFromPayload({
-        mode: "map",
-        mapOptions,
-        geoJson: data
-    });
+    renderGeoJsonToBothModes(data);
 }
 
 async function postGeoJsonSingle() {
@@ -221,7 +261,7 @@ async function postGeoJsonSingle() {
     };
 
     const data = await requestJson("/api/geo/geojson", payload);
-    renderApiResultToMap(data);
+    renderApiResult(data);
 }
 
 async function postGeoJsonBatch() {
@@ -251,7 +291,7 @@ async function postGeoJsonBatch() {
     };
 
     const data = await requestJson("/api/geo/geojson/batch", payload);
-    renderApiResultToMap(data);
+    renderApiResult(data);
 }
 
 async function postWktSingle() {
@@ -261,7 +301,7 @@ async function postWktSingle() {
     };
 
     const data = await requestJson("/api/geo/wkt", payload);
-    renderApiResultToMap(data);
+    renderApiResult(data);
 }
 
 async function postWktBatch() {
@@ -274,7 +314,7 @@ async function postWktBatch() {
     };
 
     const data = await requestJson("/api/geo/wkt/batch", payload);
-    renderApiResultToMap(data);
+    renderApiResult(data);
 }
 </script>
 }
