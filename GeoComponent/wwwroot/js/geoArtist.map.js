@@ -19,6 +19,125 @@ window.GeoArtist.mapRuntime = (function () {
         return method.apply(target, args ?? []);
     }
 
+    function resolveZoomOption(value) {
+        if (!Number.isFinite(value)) {
+            return null;
+        }
+
+        return Math.max(0, Math.floor(value));
+    }
+
+    function buildTileLayerConfig(options) {
+        const maxZoom = resolveZoomOption(options?.maxZoom);
+        const tileLayerUrl = options?.tileLayerUrl ?? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+        const tileLayerOptions = {
+            attribution: options?.tileLayerAttribution
+        };
+
+        if (maxZoom !== null) {
+            tileLayerOptions.maxZoom = maxZoom;
+        }
+
+        return {
+            tileLayerUrl,
+            tileLayerOptions
+        };
+    }
+
+    function attachAdaptiveNativeZoomFallback(baseLayer) {
+        if (!baseLayer || typeof baseLayer.on !== "function") {
+            return;
+        }
+
+        const errorCountersByZoom = {};
+
+        baseLayer.on("tileerror", function (eventArgs) {
+            const failedZoom = eventArgs?.coords?.z;
+
+            if (!Number.isFinite(failedZoom) || failedZoom <= 0) {
+                return;
+            }
+
+            const nextCount = (errorCountersByZoom[failedZoom] ?? 0) + 1;
+            errorCountersByZoom[failedZoom] = nextCount;
+
+            // A few failures at the same zoom level usually means the provider has no native tiles there.
+            if (nextCount < 3) {
+                return;
+            }
+
+            const candidateNativeZoom = failedZoom - 1;
+            const currentNativeZoom = baseLayer.options.maxNativeZoom;
+
+            if (Number.isFinite(currentNativeZoom) && currentNativeZoom <= candidateNativeZoom) {
+                return;
+            }
+
+            baseLayer.options.maxNativeZoom = candidateNativeZoom;
+
+            if (typeof baseLayer.redraw === "function") {
+                baseLayer.redraw();
+            }
+        });
+    }
+
+    function applyMapZoomOptions(map, options) {
+        const maxZoom = resolveZoomOption(options?.maxZoom);
+
+        if (maxZoom === null || typeof map.setMaxZoom !== "function") {
+            return;
+        }
+
+        map.setMaxZoom(maxZoom);
+
+        if (typeof map.getZoom === "function" && typeof map.setZoom === "function" && map.getZoom() > maxZoom) {
+            map.setZoom(maxZoom);
+        }
+    }
+
+    function resolveMapOptions(mapId, options) {
+        const map = state.maps[mapId] ?? null;
+        const previousOptions = map?.__geoArtistMapOptions ?? null;
+
+        if (!previousOptions) {
+            return options;
+        }
+
+        return {
+            ...previousOptions,
+            ...options,
+            mapId
+        };
+    }
+
+    function storeMapOptions(map, options) {
+        if (!map) {
+            return;
+        }
+
+        map.__geoArtistMapOptions = {
+            ...options
+        };
+    }
+
+    function syncTileLayer(map, options) {
+        const existingBaseLayer = map.__geoArtistBaseLayer ?? null;
+
+        if (existingBaseLayer) {
+            map.removeLayer(existingBaseLayer);
+            map.__geoArtistBaseLayer = null;
+        }
+
+        if (options?.showTileLayer === false) {
+            return;
+        }
+
+        const tileLayerConfig = buildTileLayerConfig(options);
+        const baseLayer = L.tileLayer(tileLayerConfig.tileLayerUrl, tileLayerConfig.tileLayerOptions).addTo(map);
+        attachAdaptiveNativeZoomFallback(baseLayer);
+        map.__geoArtistBaseLayer = baseLayer;
+    }
+
     function ensureMap(options) {
         if (!options || !options.mapId) {
             console.error("GeoArtist.ensureMap: options.mapId is required.");
@@ -26,6 +145,7 @@ window.GeoArtist.mapRuntime = (function () {
         }
 
         const mapId = options.mapId;
+        const resolvedOptions = resolveMapOptions(mapId, options);
         const mapElement = document.getElementById(mapId);
 
         if (!mapElement) {
@@ -34,24 +154,21 @@ window.GeoArtist.mapRuntime = (function () {
         }
 
         if (state.maps[mapId]) {
-            return state.maps[mapId];
+            const existingMap = state.maps[mapId];
+            applyMapZoomOptions(existingMap, resolvedOptions);
+            syncTileLayer(existingMap, resolvedOptions);
+            storeMapOptions(existingMap, resolvedOptions);
+            return existingMap;
         }
 
-        const map = L.map(mapId, {
-            maxZoom: options.maxZoom ?? undefined
-        }).setView(
-            [options.initialLat ?? 42.87, options.initialLng ?? 74.60],
-            options.initialZoom ?? 12
+        const map = L.map(mapId).setView(
+            [resolvedOptions.initialLat ?? 0.0, resolvedOptions.initialLng ?? 0.0],
+            resolvedOptions.initialZoom ?? 12
         );
 
-        if (options.showTileLayer !== false) {
-            L.tileLayer(
-                options.tileLayerUrl ?? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                {
-                    attribution: options.tileLayerAttribution ?? "&copy; OpenStreetMap contributors"
-                }
-            ).addTo(map);
-        }
+        applyMapZoomOptions(map, resolvedOptions);
+        syncTileLayer(map, resolvedOptions);
+        storeMapOptions(map, resolvedOptions);
 
         state.maps[mapId] = map;
         state.layers[mapId] = null;
@@ -74,8 +191,8 @@ window.GeoArtist.mapRuntime = (function () {
     function buildGeoJsonLayer(item, options) {
         return L.geoJSON(item, {
             style: {
-                color: options.polygonColor ?? "#3388ff",
-                opacity: options.polygonOpacity ?? 0.4
+                color: options.polygonColor ?? "red",
+                opacity: options.polygonOpacity
             }
         });
     }
@@ -157,8 +274,8 @@ window.GeoArtist.mapRuntime = (function () {
             return null;
         }
 
-        const options = payload.mapOptions;
-        const mapId = options.mapId;
+        const mapId = payload.mapOptions.mapId;
+        const options = resolveMapOptions(mapId, payload.mapOptions);
         const geoItems = geoJson.normalizeGeoJsonInput(payload.geoJson);
         const map = renderGeoItems(mapId, geoItems, options);
 
