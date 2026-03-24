@@ -22,6 +22,7 @@ public partial class Form1 : Form
         InitialLat = 42.8746,
         InitialLng = 74.5698,
         InitialZoom = 12,
+        MaxZoom = 19,
         FitBounds = true
     };
 
@@ -33,6 +34,8 @@ public partial class Form1 : Form
         AllowMarker = true,
         AllowEdit = true,
         AllowDelete = true,
+        SnapSensitivity = 20,
+        NodeSize = 6,
         AllowTextInputSync = true,
         AutoApplyTextChanges = true
     };

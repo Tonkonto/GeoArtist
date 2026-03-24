@@ -11,6 +11,7 @@ public sealed class GeoMapOptions
     public double InitialLat { get; set; } = 42.8746;
     public double InitialLng { get; set; } = 74.5698;
     public int InitialZoom { get; set; } = 12;
+    public int? MaxZoom { get; set; }
         //misc
     public bool FitBounds { get; set; } = true;
 

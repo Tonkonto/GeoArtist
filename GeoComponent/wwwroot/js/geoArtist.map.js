@@ -37,7 +37,9 @@ window.GeoArtist.mapRuntime = (function () {
             return state.maps[mapId];
         }
 
-        const map = L.map(mapId).setView(
+        const map = L.map(mapId, {
+            maxZoom: options.maxZoom ?? undefined
+        }).setView(
             [options.initialLat ?? 42.87, options.initialLng ?? 74.60],
             options.initialZoom ?? 12
         );

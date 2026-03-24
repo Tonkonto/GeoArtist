@@ -2,6 +2,7 @@ window.GeoArtist = window.GeoArtist || {};
 
 window.GeoArtist.geoman = (function () {
     const events = window.GeoArtist.events;
+    const defaultNodeSize = 14;
     const geomanDisableMethods = [
         "disableGlobalDrawMode",
         "disableGlobalEditMode",
@@ -24,6 +25,68 @@ window.GeoArtist.geoman = (function () {
         }
 
         return method.apply(target, args ?? []);
+    }
+
+    function resolveNodeSize(editorOptions) {
+        const raw = Number(editorOptions?.nodeSize);
+
+        if (!Number.isFinite(raw) || raw <= 0) {
+            return defaultNodeSize;
+        }
+
+        return Math.round(raw);
+    }
+
+    function getNodeStyleElementId(mapId) {
+        return `geoartist-node-size-${mapId}`;
+    }
+
+    function escapeCssIdentifier(value) {
+        if (window.CSS && typeof window.CSS.escape === "function") {
+            return window.CSS.escape(value);
+        }
+
+        return String(value).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+    }
+
+    function applyNodeSize(editorState, nodeSize) {
+        const mapId = editorState?.mapId;
+
+        if (!mapId) {
+            return;
+        }
+
+        const middleSize = Math.max(1, Math.round(nodeSize * 0.72));
+        const half = Math.round(nodeSize / 2);
+        const middleHalf = Math.round(middleSize / 2);
+        const styleId = getNodeStyleElementId(mapId);
+        const escapedMapId = escapeCssIdentifier(mapId);
+
+        let styleElement = document.getElementById(styleId);
+
+        if (!styleElement) {
+            styleElement = document.createElement("style");
+            styleElement.id = styleId;
+            document.head.appendChild(styleElement);
+        }
+
+        styleElement.textContent =
+            `#${escapedMapId} .marker-icon{width:${nodeSize}px!important;height:${nodeSize}px!important;margin:-${half}px 0 0 -${half}px!important;}` +
+            `#${escapedMapId} .marker-icon-middle{width:${middleSize}px!important;height:${middleSize}px!important;margin:-${middleHalf}px 0 0 -${middleHalf}px!important;}`;
+    }
+
+    function clearNodeSize(editorState) {
+        const mapId = editorState?.mapId;
+
+        if (!mapId) {
+            return;
+        }
+
+        const styleElement = document.getElementById(getNodeStyleElementId(mapId));
+
+        if (styleElement) {
+            styleElement.remove();
+        }
     }
 
     function enableGeoman(editorState) {
@@ -63,8 +126,11 @@ window.GeoArtist.geoman = (function () {
         });
 
         map.pm.setGlobalOptions({
-            layerGroup: editorState.featureGroup
+            layerGroup: editorState.featureGroup,
+            snapDistance: editorOptions.snapSensitivity ?? 20
         });
+
+        applyNodeSize(editorState, resolveNodeSize(editorOptions));
 
         editorState.pmCreateHandler = function (e) {
             if (e && e.layer && !editorState.featureGroup.hasLayer(e.layer)) {
@@ -124,6 +190,8 @@ window.GeoArtist.geoman = (function () {
             geomanDisableMethods.forEach(function (methodName) {
                 invokeIfFunction(map.pm, methodName);
             });
+
+            clearNodeSize(editorState);
         } catch (error) {
             console.error("GeoArtist.disableGeoman: failed to disable geoman controls.", error);
         }
