@@ -2,7 +2,6 @@ window.GeoArtist = window.GeoArtist || {};
 
 window.GeoArtist.geoman = (function () {
     const events = window.GeoArtist.events;
-    const defaultNodeSize = 14;
     const geomanDisableMethods = [
         "disableGlobalDrawMode",
         "disableGlobalEditMode",
@@ -28,17 +27,82 @@ window.GeoArtist.geoman = (function () {
     }
 
     function resolveNodeSize(editorOptions) {
-        const raw = Number(editorOptions?.nodeSize);
+        return editorOptions.nodeSize;
+    }
 
-        if (!Number.isFinite(raw) || raw <= 0) {
-            return defaultNodeSize;
+    function resolveDrawStyle(editorOptions, mapOptions) {
+        const color = editorOptions?.drawColor ?? mapOptions?.polygonColor;
+        const opacity = editorOptions?.drawOpacity ?? mapOptions?.polygonOpacity;
+
+        return {
+            color,
+            opacity
+        };
+    }
+
+    function resolveMapStyle(mapOptions) {
+        return {
+            color: mapOptions?.polygonColor,
+            opacity: mapOptions?.polygonOpacity
+        };
+    }
+
+    function buildPathOptions(drawStyle) {
+        const color = drawStyle.color;
+        const opacity = drawStyle.opacity;
+
+        return {
+            color,
+            fillColor: color,
+            opacity,
+            fillOpacity: opacity
+        };
+    }
+
+    function buildDrawPreviewOptions(drawStyle) {
+        const color = drawStyle.color;
+        const opacity = drawStyle.opacity;
+
+        return {
+            templineStyle: {
+                color,
+                opacity
+            },
+            hintlineStyle: {
+                color,
+                opacity,
+                dashArray: [5, 5]
+            }
+        };
+    }
+
+    function applyLayerStyle(layer, pathOptions) {
+        if (!layer || !pathOptions) {
+            return;
         }
 
-        return Math.round(raw);
+        if (typeof layer.setStyle === "function") {
+            layer.setStyle(pathOptions);
+            return;
+        }
+
+        if (typeof layer.eachLayer === "function") {
+            layer.eachLayer(function (innerLayer) {
+                applyLayerStyle(innerLayer, pathOptions);
+            });
+        }
     }
 
     function getNodeStyleElementId(mapId) {
         return `geoartist-node-size-${mapId}`;
+    }
+
+    function getPreviewStyleElementId(mapId) {
+        return `geoartist-preview-style-${mapId}`;
+    }
+
+    function getUiStyleElementId(mapId) {
+        return `geoartist-ui-style-${mapId}`;
     }
 
     function escapeCssIdentifier(value) {
@@ -47,6 +111,28 @@ window.GeoArtist.geoman = (function () {
         }
 
         return String(value).replace(/[^a-zA-Z0-9_-]/g, "\\$&");
+    }
+
+    function resolveScaleValue(value, fallback) {
+        if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+            return value;
+        }
+
+        return fallback;
+    }
+
+    function resolveUiScaleConfig(editorOptions) {
+        const baseScale = resolveScaleValue(editorOptions?.uiScale, 1);
+        const toolbarScale = baseScale * resolveScaleValue(editorOptions?.toolbarScale, 1);
+        const actionsScale = baseScale * resolveScaleValue(editorOptions?.actionsScale, 1);
+        const tooltipScale = baseScale * resolveScaleValue(editorOptions?.tooltipScale, 1);
+
+        return {
+            toolbarScale,
+            actionsScale,
+            tooltipScale,
+            actionsVertical: editorOptions?.actionsVertical === true
+        };
     }
 
     function applyNodeSize(editorState, nodeSize) {
@@ -89,6 +175,89 @@ window.GeoArtist.geoman = (function () {
         }
     }
 
+    function applyPreviewStyle(editorState, drawStyle) {
+        const mapId = editorState?.mapId;
+
+        if (!mapId) {
+            return;
+        }
+
+        const color = drawStyle.color;
+        const opacity = drawStyle.opacity;
+        const styleId = getPreviewStyleElementId(mapId);
+        const escapedMapId = escapeCssIdentifier(mapId);
+
+        let styleElement = document.getElementById(styleId);
+
+        if (!styleElement) {
+            styleElement = document.createElement("style");
+            styleElement.id = styleId;
+            document.head.appendChild(styleElement);
+        }
+
+        styleElement.textContent =
+            `#${escapedMapId} .leaflet-pm-templine,#${escapedMapId} .leaflet-pm-hintline{stroke:${color}!important;opacity:${opacity}!important;}` +
+            `#${escapedMapId} .leaflet-pm-hintline{fill:${color}!important;fill-opacity:${opacity}!important;}`;
+    }
+
+    function clearPreviewStyle(editorState) {
+        const mapId = editorState?.mapId;
+
+        if (!mapId) {
+            return;
+        }
+
+        const styleElement = document.getElementById(getPreviewStyleElementId(mapId));
+
+        if (styleElement) {
+            styleElement.remove();
+        }
+    }
+
+    function applyUiScale(editorState, uiScaleConfig) {
+        const mapId = editorState?.mapId;
+
+        if (!mapId || !uiScaleConfig) {
+            return;
+        }
+
+        const styleId = getUiStyleElementId(mapId);
+        const escapedMapId = escapeCssIdentifier(mapId);
+        const actionsDirection = uiScaleConfig.actionsVertical ? "column" : "row";
+        const tooltipFontSize = 12 * uiScaleConfig.tooltipScale;
+        const tooltipPaddingVertical = 4 * uiScaleConfig.tooltipScale;
+        const tooltipPaddingHorizontal = 8 * uiScaleConfig.tooltipScale;
+
+        let styleElement = document.getElementById(styleId);
+
+        if (!styleElement) {
+            styleElement = document.createElement("style");
+            styleElement.id = styleId;
+            document.head.appendChild(styleElement);
+        }
+
+        styleElement.textContent =
+            `#${escapedMapId} .leaflet-pm-toolbar{zoom:${uiScaleConfig.toolbarScale};width:max-content;}` +
+            `#${escapedMapId} .leaflet-pm-actions-container{zoom:${uiScaleConfig.actionsScale};width:max-content!important;max-width:none!important;}` +
+            `#${escapedMapId} .button-container.active .leaflet-pm-actions-container{display:inline-flex!important;flex-direction:${actionsDirection}!important;}` +
+            `#${escapedMapId} .leaflet-pm-actions-container .leaflet-pm-action{white-space:nowrap;}` +
+            `#${escapedMapId} .leaflet-tooltip{font-size:${tooltipFontSize}px!important;padding:${tooltipPaddingVertical}px ${tooltipPaddingHorizontal}px!important;line-height:1.2;max-width:320px;}`;
+    }
+
+    function clearUiScale(editorState) {
+        const mapId = editorState?.mapId;
+
+        if (!mapId) {
+            return;
+        }
+
+        const styleElement = document.getElementById(getUiStyleElementId(mapId));
+
+        if (styleElement) {
+            styleElement.remove();
+        }
+    }
+
     function enableGeoman(editorState) {
         if (!editorState || !editorState.map) {
             return;
@@ -96,6 +265,12 @@ window.GeoArtist.geoman = (function () {
 
         const map = editorState.map;
         const editorOptions = editorState.editorOptions ?? {};
+        const mapOptions = editorState.options ?? {};
+        const mapStyle = resolveMapStyle(mapOptions);
+        const drawStyle = resolveDrawStyle(editorOptions, mapOptions);
+        const pathOptions = buildPathOptions(mapStyle);
+        const drawPreviewOptions = buildDrawPreviewOptions(drawStyle);
+        const uiScaleConfig = resolveUiScaleConfig(editorOptions);
 
         if (editorOptions.enabled === false) {
             return;
@@ -127,15 +302,23 @@ window.GeoArtist.geoman = (function () {
 
         map.pm.setGlobalOptions({
             layerGroup: editorState.featureGroup,
-            snapDistance: editorOptions.snapSensitivity ?? 20
+            snapDistance: editorOptions.snapSensitivity,
+            pathOptions,
+            templineStyle: drawPreviewOptions.templineStyle,
+            hintlineStyle: drawPreviewOptions.hintlineStyle
         });
+        invokeIfFunction(map.pm, "setPathOptions", [pathOptions]);
 
         applyNodeSize(editorState, resolveNodeSize(editorOptions));
+        applyPreviewStyle(editorState, drawStyle);
+        applyUiScale(editorState, uiScaleConfig);
 
         editorState.pmCreateHandler = function (e) {
             if (e && e.layer && !editorState.featureGroup.hasLayer(e.layer)) {
                 editorState.featureGroup.addLayer(e.layer);
             }
+
+            applyLayerStyle(e?.layer, pathOptions);
 
             editorState.syncFromLayers("draw");
 
@@ -192,6 +375,8 @@ window.GeoArtist.geoman = (function () {
             });
 
             clearNodeSize(editorState);
+            clearPreviewStyle(editorState);
+            clearUiScale(editorState);
         } catch (error) {
             console.error("GeoArtist.disableGeoman: failed to disable geoman controls.", error);
         }

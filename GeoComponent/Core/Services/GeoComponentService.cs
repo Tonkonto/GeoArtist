@@ -22,11 +22,13 @@ public sealed class GeoComponentService(IGeoRendererBridge rendererBridge, GeoJs
 
     public GeoRenderResult RenderEditor(string? geoJson, GeoMapOptions? mapOptions = null, GeoEditorOptions? editorOptions = null)
     {
+        var resolvedEditorOptions = editorOptions ?? new GeoEditorOptions();
+
         var payload = BuildPayload(
             mode: "editor",
             geoJson: geoJson,
             mapOptions: mapOptions,
-            editorOptions: editorOptions);
+            editorOptions: resolvedEditorOptions);
 
         return _rendererBridge.Render(payload);
     }

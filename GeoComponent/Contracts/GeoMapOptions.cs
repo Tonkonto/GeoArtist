@@ -1,4 +1,6 @@
-﻿namespace GeoComponent.Contracts;
+using System.ComponentModel.DataAnnotations;
+
+namespace GeoComponent.Contracts;
 
 public sealed class GeoMapOptions
 {
@@ -17,6 +19,7 @@ public sealed class GeoMapOptions
 
     // Polygons
     public string PolygonColor { get; set; } = "#3388ff";
+    [Range(0.0, 1.0)]
     public double PolygonOpacity { get; set; } = 0.4;
 
     // Map System
