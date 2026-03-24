@@ -268,7 +268,8 @@ window.GeoArtist.geoman = (function () {
         const mapOptions = editorState.options ?? {};
         const mapStyle = resolveMapStyle(mapOptions);
         const drawStyle = resolveDrawStyle(editorOptions, mapOptions);
-        const pathOptions = buildPathOptions(mapStyle);
+        const mapPathOptions = buildPathOptions(mapStyle);
+        const drawPathOptions = buildPathOptions(drawStyle);
         const drawPreviewOptions = buildDrawPreviewOptions(drawStyle);
         const uiScaleConfig = resolveUiScaleConfig(editorOptions);
 
@@ -303,11 +304,11 @@ window.GeoArtist.geoman = (function () {
         map.pm.setGlobalOptions({
             layerGroup: editorState.featureGroup,
             snapDistance: editorOptions.snapSensitivity,
-            pathOptions,
+            pathOptions: drawPathOptions,
             templineStyle: drawPreviewOptions.templineStyle,
             hintlineStyle: drawPreviewOptions.hintlineStyle
         });
-        invokeIfFunction(map.pm, "setPathOptions", [pathOptions]);
+        invokeIfFunction(map.pm, "setPathOptions", [drawPathOptions]);
 
         applyNodeSize(editorState, resolveNodeSize(editorOptions));
         applyPreviewStyle(editorState, drawStyle);
@@ -318,7 +319,7 @@ window.GeoArtist.geoman = (function () {
                 editorState.featureGroup.addLayer(e.layer);
             }
 
-            applyLayerStyle(e?.layer, pathOptions);
+            applyLayerStyle(e?.layer, mapPathOptions);
 
             editorState.syncFromLayers("draw");
 
