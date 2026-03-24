@@ -1,4 +1,6 @@
-﻿namespace GeoComponent.Contracts;
+using System.ComponentModel.DataAnnotations;
+
+namespace GeoComponent.Contracts;
 
 public sealed class GeoMapOptions
 {
@@ -11,11 +13,13 @@ public sealed class GeoMapOptions
     public double InitialLat { get; set; } = 42.8746;
     public double InitialLng { get; set; } = 74.5698;
     public int InitialZoom { get; set; } = 12;
+    public int? MaxZoom { get; set; }
         //misc
     public bool FitBounds { get; set; } = true;
 
     // Polygons
     public string PolygonColor { get; set; } = "#3388ff";
+    [Range(0.0, 1.0)]
     public double PolygonOpacity { get; set; } = 0.4;
 
     // Map System

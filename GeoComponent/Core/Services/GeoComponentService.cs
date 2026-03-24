@@ -1,4 +1,5 @@
-﻿using GeoComponent.Abstractions;
+using System.ComponentModel.DataAnnotations;
+using GeoComponent.Abstractions;
 using GeoComponent.Contracts;
 
 namespace GeoComponent.Core.Services;
@@ -21,11 +22,13 @@ public sealed class GeoComponentService(IGeoRendererBridge rendererBridge, GeoJs
 
     public GeoRenderResult RenderEditor(string? geoJson, GeoMapOptions? mapOptions = null, GeoEditorOptions? editorOptions = null)
     {
+        var resolvedEditorOptions = editorOptions ?? new GeoEditorOptions();
+
         var payload = BuildPayload(
             mode: "editor",
             geoJson: geoJson,
             mapOptions: mapOptions,
-            editorOptions: editorOptions);
+            editorOptions: resolvedEditorOptions);
 
         return _rendererBridge.Render(payload);
     }
@@ -36,6 +39,11 @@ public sealed class GeoComponentService(IGeoRendererBridge rendererBridge, GeoJs
 
         if (string.IsNullOrWhiteSpace(resolvedMapOptions.MapId))
             resolvedMapOptions.MapId = "geoartist-map";
+
+        ValidateOptions(resolvedMapOptions);
+
+        if (editorOptions is not null)
+            ValidateOptions(editorOptions);
 
         var normalizedGeoJson = _geoJsonValidationService.NormalizeForRender(
             geoJson,
@@ -49,5 +57,13 @@ public sealed class GeoComponentService(IGeoRendererBridge rendererBridge, GeoJs
             MapOptions = resolvedMapOptions,
             EditorOptions = editorOptions
         };
+    }
+
+    private static void ValidateOptions(object options)
+    {
+        Validator.ValidateObject(
+            options,
+            new ValidationContext(options),
+            validateAllProperties: true);
     }
 }
