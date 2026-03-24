@@ -52,7 +52,7 @@ public sealed class GeoDesktopWebViewAdapter : IDisposable
         }
     }
 
-    public async Task RenderMapAsync(string? geoJson, GeoMapOptions? mapOptions = null)
+    public async Task RenderMapAsync(string? geoJson = null, GeoMapOptions? mapOptions = null)
     {
         await EnsureReadyAsync();
         QueueOrSendRenderMessage(_hostBridge.BuildMapRenderMessage(geoJson, mapOptions));

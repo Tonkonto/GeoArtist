@@ -27,7 +27,6 @@ public partial class Form1 : Form
 
     private readonly GeoEditorOptions _editorOptions = new()
     {
-        Enabled = true,
         AllowPolygon = true,
         AllowRectangle = true,
         AllowPolyline = true,
@@ -39,30 +38,30 @@ public partial class Form1 : Form
     };
 
     private const string DemoGeoJson = """
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "properties": {
-        "source": "desktop"
-      },
-      "geometry": {
-        "type": "Polygon",
-        "coordinates": [
-          [
-            [74.60, 42.87],
-            [74.62, 42.87],
-            [74.62, 42.89],
-            [74.60, 42.89],
-            [74.60, 42.87]
+        {
+          "type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": {
+                "source": "desktop"
+              },
+              "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                  [
+                    [74.60, 42.87],
+                    [74.62, 42.87],
+                    [74.62, 42.89],
+                    [74.60, 42.89],
+                    [74.60, 42.87]
+                  ]
+                ]
+              }
+            }
           ]
-        ]
-      }
-    }
-  ]
-}
-""";
+        }
+        """;
 
     public Form1()
     {
@@ -70,7 +69,6 @@ public partial class Form1 : Form
 
         var services = new ServiceCollection();
         services.AddGeoComponentDesktop();
-
         _serviceProvider = services.BuildServiceProvider();
         var webViewHostBridge = _serviceProvider.GetRequiredService<WebViewHostBridge>();
         var desktopHostOptions = _serviceProvider.GetRequiredService<GeoDesktopHostOptions>();
@@ -79,8 +77,7 @@ public partial class Form1 : Form
         _editorModeButton = new Button { Text = "Editor", Width = 80, Height = 32 };
         _webView = new WebView2 { Dock = DockStyle.Fill };
         _desktopAdapter = new GeoDesktopWebViewAdapter(_webView, webViewHostBridge, desktopHostOptions);
-
-        BuildLayout();
+				BuildLayout();
 
         Shown += OnShown;
         _mapModeButton.Click += async (_, _) => await LoadMapModeAsync();
@@ -124,7 +121,7 @@ public partial class Form1 : Form
     private async Task LoadMapModeAsync()
     {
         await _desktopAdapter.RenderMapAsync(
-            geoJson: DemoGeoJson,
+            /*geoJson: DemoGeoJson,*/
             mapOptions: _mapOptions);
     }
 
