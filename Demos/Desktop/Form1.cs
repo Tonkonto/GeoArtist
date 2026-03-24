@@ -36,6 +36,8 @@ public partial class Form1 : Form
         AllowDelete = true,
         SnapSensitivity = 20,
         NodeSize = 6,
+        UiScale = 1.0,
+        ActionsVertical = true,
         AllowTextInputSync = true,
         AutoApplyTextChanges = true
     };
