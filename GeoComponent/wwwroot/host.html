@@ -26,16 +26,14 @@
 
     <script>
         (function () {
+            function hasFunction(target, methodName) {
+                return !!target && typeof target[methodName] === "function";
+            }
+
             function ensureContainer(payload) {
                 const mapId = payload?.mapOptions?.mapId;
                 if (!mapId) {
                     return null;
-                }
-
-                let mapElement = document.getElementById(mapId);
-
-                if (mapElement) {
-                    return mapElement;
                 }
 
                 const root = document.getElementById("geoartist-root");
@@ -44,24 +42,49 @@
                     return null;
                 }
 
-                const shell = document.createElement("div");
-                shell.className = "geoartist-shell";
+                const mode = (payload.mode ?? "map").toLowerCase();
+                const outputId = `${mapId}-geojson-output`;
+                const isEditorMode = mode === "editor";
 
-                mapElement = document.createElement("div");
-                mapElement.id = mapId;
-                mapElement.className = "geoartist-map";
-                mapElement.style.height = payload.mapOptions.height ?? "600px";
+                let shell = root.firstElementChild;
 
-                shell.appendChild(mapElement);
-
-                if ((payload.mode ?? "map").toLowerCase() === "editor") {
-                    const output = document.createElement("textarea");
-                    output.id = `${mapId}-geojson-output`;
-                    output.className = "geoartist-geojson-output";
-                    shell.appendChild(output);
+                if (!shell || !shell.classList || !shell.classList.contains("geoartist-shell")) {
+                    shell = document.createElement("div");
+                    shell.className = "geoartist-shell";
+                    root.replaceChildren(shell);
                 }
 
-                root.replaceChildren(shell);
+                shell.setAttribute("data-geoartist-mode", mode);
+
+                Array.from(shell.querySelectorAll(".geoartist-map")).forEach(function (element) {
+                    if (element.id !== mapId) {
+                        element.remove();
+                    }
+                });
+
+                let mapElement = document.getElementById(mapId);
+
+                if (!mapElement || !shell.contains(mapElement)) {
+                    mapElement = document.createElement("div");
+                    mapElement.id = mapId;
+                    mapElement.className = "geoartist-map";
+                    shell.prepend(mapElement);
+                }
+
+                mapElement.style.height = payload.mapOptions.height ?? "600px";
+
+                let output = document.getElementById(outputId);
+
+                if (isEditorMode) {
+                    if (!output || !shell.contains(output)) {
+                        output = document.createElement("textarea");
+                        output.id = outputId;
+                        output.className = "geoartist-geojson-output";
+                        shell.appendChild(output);
+                    }
+                } else if (output && shell.contains(output)) {
+                    output.remove();
+                }
 
                 return mapElement;
             }
@@ -73,7 +96,7 @@
 
                 ensureContainer(payload);
 
-                if (!window.GeoArtist || typeof window.GeoArtist.bootstrap !== "function") {
+                if (!hasFunction(window.GeoArtist, "bootstrap")) {
                     return;
                 }
 

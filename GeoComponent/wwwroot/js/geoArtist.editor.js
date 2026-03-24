@@ -50,6 +50,8 @@ window.GeoArtist.editorRuntime = (function () {
             editor.map.off("pm:cut", editor.pmCutHandler);
         }
 
+        geoman.disableGeoman(editor);
+
         if (editor.featureGroup) {
             try {
                 editor.featureGroup.clearLayers();

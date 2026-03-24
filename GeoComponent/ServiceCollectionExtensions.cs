@@ -44,9 +44,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">DI container</param>
     /// <param name="configureDesktop">Desktop host options</param>
     /// <returns>IServiceCollection for chaining</returns>
-    public static IServiceCollection AddGeoComponentDesktop(
-        this IServiceCollection services,
-        Action<GeoDesktopHostOptions>? configureDesktop = null)
+    public static IServiceCollection AddGeoComponentDesktop(this IServiceCollection services, Action<GeoDesktopHostOptions>? configureDesktop = null)
     {
         var desktopOptions = new GeoDesktopHostOptions();
         configureDesktop?.Invoke(desktopOptions);
@@ -76,7 +74,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGeoComponent, GeoComponentService>();
 
         services.AddSingleton<AspNetCoreGeoHtmlWriter>();
-        services.AddSingleton<VirtualHostPageProvider>();
         services.AddSingleton<WebViewHostBridge>();
 
         return services;

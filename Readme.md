@@ -83,7 +83,8 @@ If you have multiple components on one page, include assets once (`include-asset
 
 ## Desktop Demo
 
-`Desktop` project uses `WebViewHostBridge` + `VirtualHostPageProvider` from `GeoComponent.Hosting.Desktop`.
+`Desktop` project uses `GeoDesktopWebViewAdapter` + `WebViewHostBridge` from `GeoComponent.Hosting.Desktop`.
+No adapter file copy is required in host apps that reference `GeoComponent`.
 
 - `Map` button renders map mode
 - `Editor` button renders editor mode
@@ -96,5 +97,5 @@ dotnet build GeoArtist.slnx
 
 ## Notes
 
-- `GeoComponent` builds independently (`net8.0`).
+- `GeoComponent` is multi-targeted (`net8.0`, `net8.0-windows`).
 - `Desktop` target is `net8.0-windows` and requires WebView2 runtime on the machine.

@@ -1,6 +1,20 @@
 window.GeoArtist = window.GeoArtist || {};
 
 window.GeoArtist.geoJson = (function () {
+    function invokeIfFunction(target, methodName, args) {
+        if (!target) {
+            return undefined;
+        }
+
+        const method = target[methodName];
+
+        if (typeof method !== "function") {
+            return undefined;
+        }
+
+        return method.apply(target, args ?? []);
+    }
+
     function normalizeGeoJsonInput(geoJson) {
         if (!geoJson) {
             return [];
@@ -149,11 +163,7 @@ window.GeoArtist.geoJson = (function () {
         }
 
         editorState.featureGroup.eachLayer(function (layer) {
-            if (typeof layer.toGeoJSON !== "function") {
-                return;
-            }
-
-            const geo = layer.toGeoJSON();
+            const geo = invokeIfFunction(layer, "toGeoJSON");
 
             if (!geo || typeof geo !== "object") {
                 return;
