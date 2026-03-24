@@ -37,9 +37,7 @@ public partial class Form1 : Form
         SnapSensitivity = 20,
         NodeSize = 6,
         AllowTextInputSync = true,
-        AutoApplyTextChanges = true,
-        DrawColor = "red",
-        DrawOpacity = 1.0
+        AutoApplyTextChanges = true
     };
 
     private const string DemoGeoJson = """

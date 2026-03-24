@@ -185,13 +185,7 @@ public sealed class GeoDesktopWebViewAdapter : IDisposable
         if (Directory.Exists(outputRoot))
             return outputRoot;
 
-        var repoRootFallback = Path.GetFullPath(
-            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "GeoComponent", "wwwroot"));
-
-        if (Directory.Exists(repoRootFallback))
-            return repoRootFallback;
-
         throw new DirectoryNotFoundException(
-            $"GeoComponent web assets folder was not found. Checked: '{outputRoot}' and '{repoRootFallback}'.");
+            $"GeoComponent web assets folder was not found at '{outputRoot}'.");
     }
 }
