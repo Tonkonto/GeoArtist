@@ -28,7 +28,7 @@ public sealed class GeoEditorOptions
     public string? DrawColor { get; set; } = "tomato";
 
     [Range(0.0, 1.0)]
-    public double? DrawOpacity { get; set; } = 1.0;
+    public double? DrawOpacity { get; set; } = 0.75;
 
     //UI Scale
     /// <summary>

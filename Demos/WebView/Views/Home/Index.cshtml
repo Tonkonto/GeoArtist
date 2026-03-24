@@ -32,48 +32,37 @@
         }
     });
 
+    // View mode Map
     var mapOptions = new GeoMapOptions
     {
         MapId = "demo-map",
         Height = "420px",
         InitialLat = 42.87,
         InitialLng = 74.60,
-        InitialZoom = 12,
-        MaxZoom = 19,
         FitBounds = true,
         PolygonColor = "#2563eb",
         PolygonOpacity = 0.45
     };
 
+    // Editor mode Map
     var editorMapOptions = new GeoMapOptions
     {
         MapId = "demo-editor",
         Height = "420px",
         InitialLat = 42.87,
         InitialLng = 74.60,
-        InitialZoom = 12,
-        MaxZoom = 19,
         FitBounds = true,
         PolygonColor = "#0f766e",
         PolygonOpacity = 0.45
     };
-
     var editorOptions = new GeoEditorOptions
     {
-        Enabled = true,
-        AllowPolygon = true,
-        AllowRectangle = true,
-        AllowPolyline = true,
-        AllowMarker = true,
-        AllowEdit = true,
-        AllowDelete = true,
-        SnapSensitivity = 20,
+        SnapSensitivity = 10,
         NodeSize = 10,
         DrawColor = "#e11d48",
-        DrawOpacity = 1.0,
         UiScale = 0.85,
         ToolbarScale = 1.0,
-        ActionsScale = 0.82,
+        ActionsScale = 0.9,
         TooltipScale = 0.8,
         ActionsVertical = true,
         AllowTextInputSync = true,
