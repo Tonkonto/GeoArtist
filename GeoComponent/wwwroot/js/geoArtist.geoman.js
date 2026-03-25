@@ -258,6 +258,53 @@ window.GeoArtist.geoman = (function () {
         }
     }
 
+    function resolveDragClickTolerance(editorOptions) {
+        const value = editorOptions?.dragClickTolerance ?? editorOptions?.DragClickTolerance;
+
+        if (typeof value !== "number" || !Number.isFinite(value)) {
+            return null;
+        }
+
+        return Math.max(0, Math.floor(value));
+    }
+
+    function applyDragClickTolerance(editorState, editorOptions) {
+        const map = editorState?.map;
+        const draggable = map?.dragging?._draggable;
+
+        if (!draggable || !draggable.options) {
+            return;
+        }
+
+        if (!Object.prototype.hasOwnProperty.call(editorState, "originalDragClickTolerance")) {
+            editorState.originalDragClickTolerance = draggable.options.clickTolerance;
+        }
+
+        const tolerance = resolveDragClickTolerance(editorOptions);
+
+        if (tolerance === null) {
+            return;
+        }
+
+        draggable.options.clickTolerance = tolerance;
+    }
+
+    function restoreDragClickTolerance(editorState) {
+        const map = editorState?.map;
+        const draggable = map?.dragging?._draggable;
+        const originalTolerance = editorState?.originalDragClickTolerance;
+
+        if (!draggable || !draggable.options) {
+            return;
+        }
+
+        if (typeof originalTolerance !== "number" || !Number.isFinite(originalTolerance)) {
+            return;
+        }
+
+        draggable.options.clickTolerance = originalTolerance;
+    }
+
     function enableGeoman(editorState) {
         if (!editorState || !editorState.map) {
             return;
@@ -268,7 +315,8 @@ window.GeoArtist.geoman = (function () {
         const mapOptions = editorState.options ?? {};
         const mapStyle = resolveMapStyle(mapOptions);
         const drawStyle = resolveDrawStyle(editorOptions, mapOptions);
-        const pathOptions = buildPathOptions(mapStyle);
+        const mapPathOptions = buildPathOptions(mapStyle);
+        const drawPathOptions = buildPathOptions(drawStyle);
         const drawPreviewOptions = buildDrawPreviewOptions(drawStyle);
         const uiScaleConfig = resolveUiScaleConfig(editorOptions);
 
@@ -303,22 +351,23 @@ window.GeoArtist.geoman = (function () {
         map.pm.setGlobalOptions({
             layerGroup: editorState.featureGroup,
             snapDistance: editorOptions.snapSensitivity,
-            pathOptions,
+            pathOptions: drawPathOptions,
             templineStyle: drawPreviewOptions.templineStyle,
             hintlineStyle: drawPreviewOptions.hintlineStyle
         });
-        invokeIfFunction(map.pm, "setPathOptions", [pathOptions]);
+        invokeIfFunction(map.pm, "setPathOptions", [drawPathOptions]);
 
         applyNodeSize(editorState, resolveNodeSize(editorOptions));
         applyPreviewStyle(editorState, drawStyle);
         applyUiScale(editorState, uiScaleConfig);
+        applyDragClickTolerance(editorState, editorOptions);
 
         editorState.pmCreateHandler = function (e) {
             if (e && e.layer && !editorState.featureGroup.hasLayer(e.layer)) {
                 editorState.featureGroup.addLayer(e.layer);
             }
 
-            applyLayerStyle(e?.layer, pathOptions);
+            applyLayerStyle(e?.layer, mapPathOptions);
 
             editorState.syncFromLayers("draw");
 
@@ -377,6 +426,7 @@ window.GeoArtist.geoman = (function () {
             clearNodeSize(editorState);
             clearPreviewStyle(editorState);
             clearUiScale(editorState);
+            restoreDragClickTolerance(editorState);
         } catch (error) {
             console.error("GeoArtist.disableGeoman: failed to disable geoman controls.", error);
         }

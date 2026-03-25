@@ -28,7 +28,14 @@ public sealed class GeoEditorOptions
     public string? DrawColor { get; set; } = "tomato";
 
     [Range(0.0, 1.0)]
-    public double? DrawOpacity { get; set; } = 1.0;
+    public double? DrawOpacity { get; set; } = 0.75;
+
+    /// <summary>
+    /// Overrides Leaflet drag click tolerance in pixels.
+    /// Higher values reduce sensitivity making speed drawing easier.
+    /// </summary>
+    [Range(0, 64)]
+    public int DragClickTolerance { get; set; } = 3;    // '3' is defaul Leaflet val
 
     //UI Scale
     /// <summary>

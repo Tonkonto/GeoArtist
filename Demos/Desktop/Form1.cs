@@ -27,12 +27,8 @@ public partial class Form1 : Form
 
     private readonly GeoEditorOptions _editorOptions = new()
     {
-        AllowPolygon = true,
-        AllowRectangle = true,
-        AllowPolyline = true,
-        AllowMarker = true,
-        AllowEdit = true,
-        AllowDelete = true,
+        DrawColor = "#0f766e",
+        DragClickTolerance = 15,
         SnapSensitivity = 10,
         NodeSize = 6,
         UiScale = 1.0,

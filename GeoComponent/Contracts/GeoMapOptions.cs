@@ -18,7 +18,7 @@ public sealed class GeoMapOptions
     public int InitialZoom { get; set; } = 12;
 
     [Range(0, 24)]
-    public int? MaxZoom { get; set; } = 20;
+    public int? MaxZoom { get; set; } = 21;
     //misc
     public bool FitBounds { get; set; } = true;
 
