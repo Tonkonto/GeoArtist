@@ -189,10 +189,15 @@ window.GeoArtist.mapRuntime = (function () {
     }
 
     function buildGeoJsonLayer(item, options) {
+        const color = options.polygonColor ?? "red";
+        const opacity = options.polygonOpacity;
+
         return L.geoJSON(item, {
             style: {
-                color: options.polygonColor ?? "red",
-                opacity: options.polygonOpacity
+                color,
+                fillColor: color,
+                opacity,
+                fillOpacity: opacity
             }
         });
     }

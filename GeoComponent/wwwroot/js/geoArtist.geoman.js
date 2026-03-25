@@ -97,6 +97,18 @@ window.GeoArtist.geoman = (function () {
         }
     }
 
+    function applyMapStyleToEditorLayers(editorState, mapPathOptions) {
+        const featureGroup = editorState?.featureGroup;
+
+        if (!featureGroup || typeof featureGroup.eachLayer !== "function") {
+            return;
+        }
+
+        featureGroup.eachLayer(function (layer) {
+            applyLayerStyle(layer, mapPathOptions);
+        });
+    }
+
     function getNodeStyleElementId(mapId) {
         return `geoartist-node-size-${mapId}`;
     }
@@ -376,6 +388,7 @@ window.GeoArtist.geoman = (function () {
             }
 
             applyLayerStyle(e?.layer, mapPathOptions);
+            applyMapStyleToEditorLayers(editorState, mapPathOptions);
 
             editorState.syncFromLayers("draw");
 
@@ -386,6 +399,7 @@ window.GeoArtist.geoman = (function () {
         };
 
         editorState.pmEditHandler = function () {
+            applyMapStyleToEditorLayers(editorState, mapPathOptions);
             editorState.syncFromLayers("edit");
 
             events.emit("geoartist:featureUpdated", {
@@ -404,6 +418,7 @@ window.GeoArtist.geoman = (function () {
         };
 
         editorState.pmCutHandler = function () {
+            applyMapStyleToEditorLayers(editorState, mapPathOptions);
             editorState.syncFromLayers("cut");
         };
 
