@@ -25,10 +25,12 @@ public sealed class GeoEditorOptions
     [Range(6, 64)]
     public int NodeSize { get; set; } = 14;
 
-    public string? DrawColor { get; set; } = "tomato";
+    public string NodeColor { get; set; } = "#000";
+
+    public string DrawColor { get; set; } = "0f766e";
 
     [Range(0.0, 1.0)]
-    public double? DrawOpacity { get; set; } = 0.75;
+    public double DrawOpacity { get; set; } = 0.75;
 
     /// <summary>
     /// Overrides Leaflet drag click tolerance in pixels.
