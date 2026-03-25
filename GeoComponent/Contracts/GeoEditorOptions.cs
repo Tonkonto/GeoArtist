@@ -27,7 +27,7 @@ public sealed class GeoEditorOptions
 
     public string NodeColor { get; set; } = "#000";
 
-    public string DrawColor { get; set; } = "0f766e";
+    public string DrawColor { get; set; } = "#0f766e";
 
     [Range(0.0, 1.0)]
     public double DrawOpacity { get; set; } = 0.75;

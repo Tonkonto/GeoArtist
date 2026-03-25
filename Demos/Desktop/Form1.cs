@@ -27,7 +27,7 @@ public partial class Form1 : Form
 
     private readonly GeoEditorOptions _editorOptions = new()
     {
-        NodeColor = "#ea580c",
+        NodeColor = "#fa580c",
         DragClickTolerance = 15,
         SnapSensitivity = 10,
         NodeSize = 6,
