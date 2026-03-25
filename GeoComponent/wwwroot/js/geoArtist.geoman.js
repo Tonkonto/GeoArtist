@@ -30,6 +30,10 @@ window.GeoArtist.geoman = (function () {
         return editorOptions.nodeSize;
     }
 
+    function resolveNodeColor(editorOptions, mapOptions) {
+        return editorOptions?.nodeColor ?? editorOptions?.drawColor ?? mapOptions?.polygonColor ?? undefined;
+    }
+
     function resolveDrawStyle(editorOptions, mapOptions) {
         const color = editorOptions?.drawColor ?? mapOptions?.polygonColor;
         const opacity = editorOptions?.drawOpacity ?? mapOptions?.polygonOpacity;
@@ -135,7 +139,7 @@ window.GeoArtist.geoman = (function () {
         };
     }
 
-    function applyNodeSize(editorState, nodeSize) {
+    function applyNodeSize(editorState, nodeSize, nodeColor) {
         const mapId = editorState?.mapId;
 
         if (!mapId) {
@@ -147,6 +151,9 @@ window.GeoArtist.geoman = (function () {
         const middleHalf = Math.round(middleSize / 2);
         const styleId = getNodeStyleElementId(mapId);
         const escapedMapId = escapeCssIdentifier(mapId);
+        const colorCss = nodeColor
+            ? `background:${nodeColor}!important;border-color:${nodeColor}!important;`
+            : "";
 
         let styleElement = document.getElementById(styleId);
 
@@ -157,8 +164,8 @@ window.GeoArtist.geoman = (function () {
         }
 
         styleElement.textContent =
-            `#${escapedMapId} .marker-icon{width:${nodeSize}px!important;height:${nodeSize}px!important;margin:-${half}px 0 0 -${half}px!important;}` +
-            `#${escapedMapId} .marker-icon-middle{width:${middleSize}px!important;height:${middleSize}px!important;margin:-${middleHalf}px 0 0 -${middleHalf}px!important;}`;
+            `#${escapedMapId} .marker-icon{width:${nodeSize}px!important;height:${nodeSize}px!important;margin:-${half}px 0 0 -${half}px!important;${colorCss}}` +
+            `#${escapedMapId} .marker-icon-middle{width:${middleSize}px!important;height:${middleSize}px!important;margin:-${middleHalf}px 0 0 -${middleHalf}px!important;${colorCss}}`;
     }
 
     function clearNodeSize(editorState) {
@@ -319,6 +326,7 @@ window.GeoArtist.geoman = (function () {
         const drawPathOptions = buildPathOptions(drawStyle);
         const drawPreviewOptions = buildDrawPreviewOptions(drawStyle);
         const uiScaleConfig = resolveUiScaleConfig(editorOptions);
+        const nodeColor = resolveNodeColor(editorOptions, mapOptions);
 
         if (editorOptions.enabled === false) {
             return;
@@ -357,7 +365,7 @@ window.GeoArtist.geoman = (function () {
         });
         invokeIfFunction(map.pm, "setPathOptions", [drawPathOptions]);
 
-        applyNodeSize(editorState, resolveNodeSize(editorOptions));
+        applyNodeSize(editorState, resolveNodeSize(editorOptions), nodeColor);
         applyPreviewStyle(editorState, drawStyle);
         applyUiScale(editorState, uiScaleConfig);
         applyDragClickTolerance(editorState, editorOptions);
