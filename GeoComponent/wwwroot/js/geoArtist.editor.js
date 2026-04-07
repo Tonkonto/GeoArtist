@@ -156,8 +156,8 @@ window.GeoArtist.editorRuntime = (function () {
             payload,
             options,
             editorOptions: payload.editorOptions ?? {},
-            allowTextInputSync: (payload.editorOptions?.allowTextInputSync) !== false,
-            autoApplyTextChanges: (payload.editorOptions?.autoApplyTextChanges) !== false,
+            allowJsonEditing: (payload.editorOptions?.allowJsonEditing) !== false,
+            autoApplyJsonChanges: (payload.editorOptions?.autoApplyJsonChanges) !== false,
             featureGroup,
             lastValidGeoJson: payload.geoJson,
             suppressTextSync: false,
@@ -176,7 +176,7 @@ window.GeoArtist.editorRuntime = (function () {
 
         outputElement.value = geoJson.toEditableJsonText(payload.geoJson);
         setEditorStatus(outputElement, false);
-        outputElement.readOnly = !editorState.allowTextInputSync;
+        outputElement.readOnly = !editorState.allowJsonEditing;
 
         editorState.inputHandler = function () {
             if (editorState.suppressTextSync) {
@@ -195,7 +195,7 @@ window.GeoArtist.editorRuntime = (function () {
             editorState.lastValidGeoJson = parseResult.value;
             payload.geoJson = parseResult.value;
 
-            if (editorState.autoApplyTextChanges) {
+            if (editorState.autoApplyJsonChanges) {
                 importGeoItemsToEditor(editorState, parseResult.value, true);
             }
 
@@ -206,7 +206,7 @@ window.GeoArtist.editorRuntime = (function () {
             });
         };
 
-        if (editorState.allowTextInputSync) {
+        if (editorState.allowJsonEditing) {
             outputElement.addEventListener("input", editorState.inputHandler);
         }
 

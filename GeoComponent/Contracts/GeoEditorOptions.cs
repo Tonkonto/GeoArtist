@@ -71,6 +71,6 @@ public sealed class GeoEditorOptions
 
     // System
     public bool Enabled { get; set; } = true;
-    public bool AllowTextInputSync { get; set; } = true;
-    public bool AutoApplyTextChanges { get; set; } = true;
+    public bool AllowJsonEditing { get; set; } = true;
+    public bool AutoApplyJsonChanges { get; set; } = true;
 }

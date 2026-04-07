@@ -32,9 +32,7 @@
     <Reference Include="Microsoft.Web.WebView2.WinForms">
       <HintPath>$(PkgMicrosoft_Web_WebView2)\lib_manual\netcoreapp3.0\Microsoft.Web.WebView2.WinForms.dll</HintPath>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
+    
     <Content Update="wwwroot\**\*">
       <TargetPath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
