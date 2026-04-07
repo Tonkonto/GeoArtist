@@ -32,9 +32,7 @@ public partial class Form1 : Form
         SnapSensitivity = 10,
         NodeSize = 6,
         UiScale = 1.0,
-        ActionsVertical = true,
-        AllowTextInputSync = true,
-        AutoApplyTextChanges = true
+        ActionsVertical = true
     };
 
     private const string DemoGeoJson = """

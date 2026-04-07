@@ -39,7 +39,6 @@
         Height = "420px",
         InitialLat = 42.87,
         InitialLng = 74.60,
-        FitBounds = true,
         PolygonColor = "#2563eb",
         PolygonOpacity = 0.45
     };
@@ -51,7 +50,6 @@
         Height = "420px",
         InitialLat = 42.87,
         InitialLng = 74.60,
-        FitBounds = true,
         PolygonColor = "#0f766e",
         PolygonOpacity = 0.45
     };
@@ -62,12 +60,9 @@
         DrawColor = "#e11d48",
         DragClickTolerance = 10,
         UiScale = 0.85,
-        ToolbarScale = 1.0,
         ActionsScale = 0.9,
         TooltipScale = 0.8,
-        ActionsVertical = true,
-        AllowTextInputSync = true,
-        AutoApplyTextChanges = true
+        ActionsVertical = true
     };
 
 }
@@ -80,11 +75,11 @@
 </p>
 
 <div class="d-flex gap-2 flex-wrap mb-3">
-    <button class="btn btn-sm btn-outline-primary" type="button" onclick="renderFromController()">GET /Home/TestPolygon</button>
-    <button class="btn btn-sm btn-outline-primary" type="button" onclick="postGeoJsonSingle()">POST /api/geo/geojson</button>
-    <button class="btn btn-sm btn-outline-primary" type="button" onclick="postGeoJsonBatch()">POST /api/geo/geojson/batch</button>
-    <button class="btn btn-sm btn-outline-info" type="button" onclick="postWktSingle()">POST /api/geo/wkt</button>
-    <button class="btn btn-sm btn-outline-info" type="button" onclick="postWktBatch()">POST /api/geo/wkt/batch</button>
+    <button class="btn btn-sm btn-outline-primary"  type="button"   onclick="renderFromController()"> GET  /Home/TestPolygon      </button>
+    <button class="btn btn-sm btn-outline-primary"  type="button"   onclick="postGeoJsonSingle()">    POST /api/geo/geojson       </button>
+    <button class="btn btn-sm btn-outline-primary"  type="button"   onclick="postGeoJsonBatch()">     POST /api/geo/geojson/batch </button>
+    <button class="btn btn-sm btn-outline-info"     type="button"   onclick="postWktSingle()">        POST /api/geo/wkt           </button>
+    <button class="btn btn-sm btn-outline-info"     type="button"   onclick="postWktBatch()">         POST /api/geo/wkt/batch     </button>
 </div>
 
 <div class="row g-3 mb-4">
