@@ -37,8 +37,6 @@
     {
         MapId = "demo-map",
         Height = "420px",
-        InitialLat = 42.87,
-        InitialLng = 74.60,
         PolygonColor = "#2563eb",
         PolygonOpacity = 0.45
     };
@@ -48,8 +46,6 @@
     {
         MapId = "demo-editor",
         Height = "420px",
-        InitialLat = 42.87,
-        InitialLng = 74.60,
         PolygonColor = "#0f766e",
         PolygonOpacity = 0.45
     };
@@ -97,12 +93,12 @@
 <div class="row g-3">
     <div class="col-xl-6">
         <h4>Map Mode</h4>
-        <geo-map geo-json="@sampleGeoJson" map-options="@mapOptions" include-assets="false"></geo-map>
+        <geo-map geo-json="@sampleGeoJson" map-options="@mapOptions" include-assets="false" />
     </div>
 
     <div class="col-xl-6">
         <h4>Editor Mode</h4>
-        <geo-map geo-json="@sampleGeoJson" map-options="@editorMapOptions" editor-options="@editorOptions" mode="editor" include-assets="true"></geo-map>
+        <geo-map geo-json="@sampleGeoJson" map-options="@editorMapOptions" editor-options="@editorOptions" mode="editor" include-assets="true" />
     </div>
 </div>
 

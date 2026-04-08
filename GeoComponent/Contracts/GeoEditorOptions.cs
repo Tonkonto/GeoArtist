@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace GeoComponent.Contracts;
 
@@ -20,6 +20,7 @@ public sealed class GeoEditorOptions
     public bool AllowRotate { get; set; } = true;
 
     // Nodes customization
+    [Range(0, 64)]
     public int SnapSensitivity { get; set; } = 20;
 
     [Range(6, 64)]
@@ -37,7 +38,7 @@ public sealed class GeoEditorOptions
     /// Higher values reduce sensitivity making speed drawing easier.
     /// </summary>
     [Range(0, 64)]
-    public int DragClickTolerance { get; set; } = 3;    // '3' is defaul Leaflet val
+    public int DragClickTolerance { get; set; } = 3;
 
     //UI Scale
     /// <summary>
