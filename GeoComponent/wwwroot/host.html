@@ -16,6 +16,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.18.3/dist/leaflet-geoman.min.js"></script>
 
+    <script src="./js/geoArtist.messages.js"></script>
     <script src="./js/geoArtist.state.js"></script>
     <script src="./js/geoArtist.events.js"></script>
     <script src="./js/geoArtist.geojson.js"></script>
@@ -108,14 +109,14 @@
                 window.chrome.webview.addEventListener("message", function (e) {
                     const data = e?.data;
 
-                    if (data?.type !== "geoartist.render") {
+                    if (data?.type !== window.GeoArtist.messages.render) {
                         return;
                     }
 
                     bootstrapFromHostMessage(data.payload);
                 });
 
-                window.chrome.webview.postMessage({ type: "geoartist.host.ready" });
+                window.chrome.webview.postMessage({ type: window.GeoArtist.messages.hostReady });
             }
         })();
     </script>

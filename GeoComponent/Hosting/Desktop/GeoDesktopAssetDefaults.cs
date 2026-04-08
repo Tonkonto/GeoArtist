@@ -13,6 +13,7 @@ internal static class GeoDesktopAssetDefaults
 
         assets.JsPaths =
         [
+            hostOptions.ToAssetUrl("js/geoArtist.messages.js"),
             hostOptions.ToAssetUrl("js/geoArtist.state.js"),
             hostOptions.ToAssetUrl("js/geoArtist.events.js"),
             hostOptions.ToAssetUrl("js/geoArtist.geojson.js"),

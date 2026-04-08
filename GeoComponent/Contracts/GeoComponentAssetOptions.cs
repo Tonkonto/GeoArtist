@@ -9,6 +9,7 @@ public sealed class GeoComponentAssetOptions
 
     public List<string> JsPaths { get; set; } =
     [
+        "/_content/GeoComponent/js/geoArtist.messages.js",
         "/_content/GeoComponent/js/geoArtist.state.js",
         "/_content/GeoComponent/js/geoArtist.events.js",
         "/_content/GeoComponent/js/geoArtist.geojson.js",
