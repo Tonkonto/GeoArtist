@@ -130,9 +130,10 @@ window.GeoArtist.editorRuntime = (function () {
     function initializeEditorState(payload) {
         const options = payload.mapOptions;
         const mapId = options.mapId;
-        const outputElement = getEditorOutputElement(mapId);
+        const useGeoJsonTextArea = (payload.editorOptions?.useGeoJsonTextArea) !== false;
+        const outputElement = useGeoJsonTextArea ? getEditorOutputElement(mapId) : null;
 
-        if (!outputElement) {
+        if (useGeoJsonTextArea && !outputElement) {
             console.error("GeoArtist.initializeEditorState: editor output element not found:", `${mapId}-geojson-output`);
             return null;
         }
@@ -156,8 +157,8 @@ window.GeoArtist.editorRuntime = (function () {
             payload,
             options,
             editorOptions: payload.editorOptions ?? {},
-            allowJsonEditing: (payload.editorOptions?.allowJsonEditing) !== false,
-            autoApplyJsonChanges: (payload.editorOptions?.autoApplyJsonChanges) !== false,
+            allowJsonEditing: useGeoJsonTextArea && (payload.editorOptions?.allowJsonEditing!==false),
+            autoApplyJsonChanges: payload.editorOptions?.autoApplyJsonChanges!==false,
             featureGroup,
             lastValidGeoJson: payload.geoJson,
             suppressTextSync: false,
@@ -174,40 +175,42 @@ window.GeoArtist.editorRuntime = (function () {
             syncEditorOutputFromLayers(editorState, source);
         };
 
-        outputElement.value = geoJson.toEditableJsonText(payload.geoJson);
-        setEditorStatus(outputElement, false);
-        outputElement.readOnly = !editorState.allowJsonEditing;
-
-        editorState.inputHandler = function () {
-            if (editorState.suppressTextSync) {
-                return;
-            }
-
-            const parseResult = geoJson.tryParseEditorText(outputElement.value);
-
-            if (!parseResult.ok) {
-                setEditorStatus(outputElement, true);
-                return;
-            }
-
+        if (outputElement) {
+            outputElement.value = geoJson.toEditableJsonText(payload.geoJson);
             setEditorStatus(outputElement, false);
+            outputElement.readOnly = !editorState.allowJsonEditing;
 
-            editorState.lastValidGeoJson = parseResult.value;
-            payload.geoJson = parseResult.value;
+            editorState.inputHandler = function () {
+                if (editorState.suppressTextSync) {
+                    return;
+                }
 
-            if (editorState.autoApplyJsonChanges) {
-                importGeoItemsToEditor(editorState, parseResult.value, true);
+                const parseResult = geoJson.tryParseEditorText(outputElement.value);
+
+                if (!parseResult.ok) {
+                    setEditorStatus(outputElement, true);
+                    return;
+                }
+
+                setEditorStatus(outputElement, false);
+
+                editorState.lastValidGeoJson = parseResult.value;
+                payload.geoJson = parseResult.value;
+
+                if (editorState.autoApplyJsonChanges) {
+                    importGeoItemsToEditor(editorState, parseResult.value, true);
+                }
+
+                events.emit("geoartist:geojsonChanged", {
+                    mapId,
+                    source: "text",
+                    geoJson: parseResult.value
+                });
+            };
+
+            if (editorState.allowJsonEditing) {
+                outputElement.addEventListener("input", editorState.inputHandler);
             }
-
-            events.emit("geoartist:geojsonChanged", {
-                mapId,
-                source: "text",
-                geoJson: parseResult.value
-            });
-        };
-
-        if (editorState.allowJsonEditing) {
-            outputElement.addEventListener("input", editorState.inputHandler);
         }
 
         state.editors[mapId] = editorState;

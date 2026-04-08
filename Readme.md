@@ -60,16 +60,14 @@ builder.Services.AddGeoComponent();
 <geo-map
     geo-json='{"type":"FeatureCollection","features":[]}'
     map-options="@mapOptions"
-    include-assets="true">
-</geo-map>
+    include-assets="true" />
 
 <geo-map
     geo-json='{"type":"FeatureCollection","features":[]}'
     map-options="@mapOptions"
     editor-options="@editorOptions"
     mode="editor"
-    include-assets="false">
-</geo-map>
+    include-assets="false" />
 ```
 
 ## Asset Strategy

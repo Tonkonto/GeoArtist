@@ -23,8 +23,7 @@ namespace GeoComponent.Hosting.AspNetCore;
 /// &lt;geo-map
 ///     geo-json="@Model.GeoJson"
 ///     mode="editor"
-///     include-assets="true"&gt;
-/// &lt;/geo-map&gt;
+///     include-assets="true" /&gt;
 /// </code>
 /// </remarks>
 /// <remarks>

@@ -8,10 +8,13 @@ public sealed class GeoMapOptions
     public string MapId { get; set; } = "geoartist-map";
     public string Height { get; set; } = "600px";
 
-    
+
     // Map
-        //position
+    //position
+    [Range(-90.0, 90.0)]
     public double InitialLat { get; set; } = 42.8746;
+
+    [Range(-90.0, 90.0)]
     public double InitialLng { get; set; } = 74.5698;
 
     [Range(0, 24)]
