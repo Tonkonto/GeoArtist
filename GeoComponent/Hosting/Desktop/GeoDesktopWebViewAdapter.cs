@@ -1,5 +1,6 @@
 using System.Text.Json;
 using GeoComponent.Contracts;
+using GeoComponent.Rendering.Scripts;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
@@ -7,8 +8,6 @@ namespace GeoComponent.Hosting.Desktop;
 
 public sealed class GeoDesktopWebViewAdapter : IDisposable
 {
-    private const string HostReadyMessageType = "geoartist.host.ready";
-
     private readonly WebView2 _webView;
     private readonly WebViewHostBridge _hostBridge;
     private readonly GeoDesktopHostOptions _hostOptions;
@@ -120,7 +119,7 @@ public sealed class GeoDesktopWebViewAdapter : IDisposable
         if (!TryGetMessageType(e.WebMessageAsJson, out var messageType))
             return;
 
-        if (!string.Equals(messageType, HostReadyMessageType, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(messageType, ScriptMessageNames.HostReady, StringComparison.OrdinalIgnoreCase))
             return;
 
         _hostReady = true;

@@ -1,5 +1,6 @@
 using GeoComponent.Abstractions;
 using GeoComponent.Contracts;
+using GeoComponent.Rendering.Scripts;
 
 namespace GeoComponent.Hosting.Desktop;
 
@@ -29,6 +30,6 @@ public sealed class WebViewHostBridge(IGeoComponent geoComponent)
 
     private static string BuildRenderMessage(string serializedPayload)
     {
-        return $$"""{"type":"geoartist.render","payload":{{serializedPayload}}}""";
+        return $$"""{"type":"{{ScriptMessageNames.Render}}","payload":{{serializedPayload}}}""";
     }
 }
