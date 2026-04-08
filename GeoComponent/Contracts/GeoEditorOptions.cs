@@ -71,6 +71,7 @@ public sealed class GeoEditorOptions
 
     // System
     public bool Enabled { get; set; } = true;
+    public bool UseGeoJsonTextArea { get; set; } = false;
     public bool AllowJsonEditing { get; set; } = true;
     public bool AutoApplyJsonChanges { get; set; } = true;
 }

@@ -45,6 +45,7 @@
                 const mode = (payload.mode ?? "map").toLowerCase();
                 const outputId = `${mapId}-geojson-output`;
                 const isEditorMode = mode === "editor";
+                const useGeoJsonTextArea = (payload.editorOptions?.useGeoJsonTextArea) !== false;
 
                 let shell = root.firstElementChild;
 
@@ -75,7 +76,7 @@
 
                 let output = document.getElementById(outputId);
 
-                if (isEditorMode) {
+                if (isEditorMode && useGeoJsonTextArea) {
                     if (!output || !shell.contains(output)) {
                         output = document.createElement("textarea");
                         output.id = outputId;

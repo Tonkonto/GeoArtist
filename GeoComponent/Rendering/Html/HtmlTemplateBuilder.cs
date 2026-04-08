@@ -15,7 +15,7 @@ public sealed class HtmlTemplateBuilder
         sb.AppendLine($"""<div class="geoartist-shell" data-geoartist-mode="{payload.Mode}">""");
         sb.AppendLine($"""  <div id="{mapId}" class="geoartist-map" style="height: {height};"></div>""");
 
-        if (payload.IsEditable)
+        if (payload.IsEditable && (payload.EditorOptions?.UseGeoJsonTextArea ?? true))
         {
             sb.AppendLine($"""  <textarea id="{mapId}-geojson-output" class="geoartist-geojson-output" spellcheck="false"></textarea>""");
         }
