@@ -20,12 +20,12 @@ public sealed class GeoComponentAssetOptions
 
     public List<string> LeafletCssPaths { get; set; } =
     [
-        "https://unpkg.com/leaflet/dist/leaflet.css"
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     ];
 
     public List<string> LeafletJsPaths { get; set; } =
     [
-        "https://unpkg.com/leaflet/dist/leaflet.js"
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     ];
 
     public List<string> GeomanCssPaths { get; set; } =
