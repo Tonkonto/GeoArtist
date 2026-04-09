@@ -1,11 +1,21 @@
 using System.Text;
+using GeoComponent.Abstractions;
 using GeoComponent.Contracts;
 using Microsoft.AspNetCore.Html;
 
 namespace GeoComponent.Hosting.AspNetCore;
 
+/// <summary>
+/// Combines <see cref="GeoRenderResult"/> markup with optional <c>link</c> and <c>script</c> tags from <see cref="GeoRenderResult.StylePaths"/> and <see cref="GeoRenderResult.ScriptPaths"/>.
+/// </summary>
 public sealed class AspNetCoreGeoHtmlWriter
 {
+    /// <summary>
+    /// Builds Razor-safe HTML that includes the rendered component and, when requested, dependency tags in list order.
+    /// </summary>
+    /// <param name="renderResult">Output from <see cref="IGeoComponent.RenderMap"/> or <see cref="IGeoComponent.RenderEditor"/>.</param>
+    /// <param name="includeAssets">If <see langword="false"/>, only <see cref="GeoRenderResult.Html"/> is wrapped (no external CSS/JS tags).</param>
+    /// <returns><see cref="IHtmlContent"/> for views or tag helpers.</returns>
     public IHtmlContent BuildHtmlContent(GeoRenderResult renderResult, bool includeAssets = true)
     {
         var sb = new StringBuilder();

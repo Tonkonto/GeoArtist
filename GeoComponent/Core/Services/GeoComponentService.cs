@@ -4,11 +4,15 @@ using GeoComponent.Contracts;
 
 namespace GeoComponent.Core.Services;
 
+/// <summary>
+/// Default implementation of <see cref="IGeoComponent"/> that validates options, normalizes GeoJSON, and delegates HTML generation to <see cref="IGeoRendererBridge"/>.
+/// </summary>
 public sealed class GeoComponentService(IGeoRendererBridge rendererBridge, GeoJsonValidationService geoJsonValidationService) : IGeoComponent
 {
     private readonly IGeoRendererBridge _rendererBridge = rendererBridge;
     private readonly GeoJsonValidationService _geoJsonValidationService = geoJsonValidationService;
 
+    /// <inheritdoc />
     public GeoRenderResult RenderMap(string? geoJson, GeoMapOptions? mapOptions = null)
     {
         var payload = BuildPayload(
@@ -20,6 +24,7 @@ public sealed class GeoComponentService(IGeoRendererBridge rendererBridge, GeoJs
         return _rendererBridge.Render(payload);
     }
 
+    /// <inheritdoc />
     public GeoRenderResult RenderEditor(string? geoJson, GeoMapOptions? mapOptions = null, GeoEditorOptions? editorOptions = null)
     {
         var resolvedEditorOptions = editorOptions ?? new GeoEditorOptions();

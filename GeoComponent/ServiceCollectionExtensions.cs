@@ -1,4 +1,4 @@
-﻿using GeoComponent.Abstractions;
+using GeoComponent.Abstractions;
 using GeoComponent.Contracts;
 using GeoComponent.Core.Interfaces;
 using GeoComponent.Core.Services;
@@ -11,14 +11,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace GeoComponent;
 
+/// <summary>
+/// Extension methods to register GeoArtist services, asset options, and host helpers in <see cref="IServiceCollection"/>.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
     // ===== Public Methods =====
     /// <summary>
     /// Registers GeoComponent with default configuration.
     /// </summary>
-    /// <param name="services">DI container</param>
-    /// <returns>IServiceCollection for chaining</returns>
+    /// <param name="services">The application’s service collection.</param>
+    /// <returns>The same <paramref name="services"/> instance for chaining.</returns>
     public static IServiceCollection AddGeoComponent(this IServiceCollection services)
     {
         services.Configure<GeoComponentAssetOptions>(_ => { });
@@ -28,9 +31,9 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Registers GeoComponent with custom asset paths configuration.
     /// </summary>
-    /// <param name="services">DI container</param>
-    /// <param name="configureAssets">Asset configuration delegate</param>
-    /// <returns>IServiceCollection for chaining</returns>
+    /// <param name="services">The application’s service collection.</param>
+    /// <param name="configureAssets">Delegate that mutates <see cref="GeoComponentAssetOptions"/> (CDN URLs, static file paths).</param>
+    /// <returns>The same <paramref name="services"/> instance for chaining.</returns>
     public static IServiceCollection AddGeoComponent(this IServiceCollection services, Action<GeoComponentAssetOptions> configureAssets)
     {
         services.Configure(configureAssets);
@@ -41,9 +44,9 @@ public static class ServiceCollectionExtensions
     /// Registers GeoComponent with desktop host defaults.
     /// The desktop host uses a virtual HTTPS origin for local static assets.
     /// </summary>
-    /// <param name="services">DI container</param>
-    /// <param name="configureDesktop">Desktop host options</param>
-    /// <returns>IServiceCollection for chaining</returns>
+    /// <param name="services">The application’s service collection.</param>
+    /// <param name="configureDesktop">Optional delegate to set <see cref="GeoDesktopHostOptions"/> (virtual host name, origin).</param>
+    /// <returns>The same <paramref name="services"/> instance for chaining.</returns>
     public static IServiceCollection AddGeoComponentDesktop(this IServiceCollection services, Action<GeoDesktopHostOptions>? configureDesktop = null)
     {
         var desktopOptions = new GeoDesktopHostOptions();

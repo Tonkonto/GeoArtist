@@ -6,9 +6,15 @@ using Microsoft.Extensions.Options;
 
 namespace GeoComponent.Rendering;
 
-public sealed class GeoRendererBridge(  HtmlTemplateBuilder htmlTemplateBuilder, HtmlDocumentBuilder htmlDocumentBuilder,
-                                        ScriptBootstrapBuilder scriptBootstrapBuilder,
-                                        IGeoDataSerializer serializer, IOptions<GeoComponentAssetOptions> assetOptions  ) : IGeoRendererBridge
+/// <summary>
+/// Default <see cref="IGeoRendererBridge"/> that composes HTML shell, bootstrap script, asset path lists, and serialized payload.
+/// </summary>
+public sealed class GeoRendererBridge(
+    HtmlTemplateBuilder htmlTemplateBuilder,
+    HtmlDocumentBuilder htmlDocumentBuilder,
+    ScriptBootstrapBuilder scriptBootstrapBuilder,
+    IGeoDataSerializer serializer,
+    IOptions<GeoComponentAssetOptions> assetOptions) : IGeoRendererBridge
 {
     private readonly HtmlTemplateBuilder _htmlTemplateBuilder = htmlTemplateBuilder;
     private readonly HtmlDocumentBuilder _htmlDocumentBuilder = htmlDocumentBuilder;
@@ -16,6 +22,7 @@ public sealed class GeoRendererBridge(  HtmlTemplateBuilder htmlTemplateBuilder,
     private readonly IGeoDataSerializer _serializer = serializer;
     private readonly GeoComponentAssetOptions _assetOptions = assetOptions.Value;
 
+    /// <inheritdoc />
     public GeoRenderResult Render(GeoComponentPayload payload)
     {
         var componentHtml = _htmlTemplateBuilder.BuildMapHost(payload);

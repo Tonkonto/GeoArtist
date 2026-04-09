@@ -7,10 +7,20 @@ using NetTopologySuite.IO;
 
 namespace GeoComponent.Core.Services;
 
+/// <summary>
+/// Parses GeoJSON, normalizes to a single <c>FeatureCollection</c>, validates geometries, and optionally reprojects to WGS 84.
+/// </summary>
 public sealed class GeoJsonValidationService(IGeometryTransformService geometryTransformService)
 {
     private readonly IGeometryTransformService _geometryTransformService = geometryTransformService;
 
+    /// <summary>
+    /// Returns a normalized GeoJSON string suitable for the browser map.
+    /// </summary>
+    /// <param name="geoJson">Input GeoJSON (FeatureCollection, Feature, geometry, or array of features).</param>
+    /// <param name="sourceSrid">When set to an EPSG code other than 4326, coordinates are transformed to WGS 84 before return.</param>
+    /// <returns>Whitespace-minimized <c>FeatureCollection</c> JSON.</returns>
+    /// <exception cref="InvalidGeoJsonException">Thrown when JSON is invalid or does not meet the expected schema.</exception>
     public string NormalizeForRender(string? geoJson, int? sourceSrid)
     {
         var featureCollection = string.IsNullOrWhiteSpace(geoJson)

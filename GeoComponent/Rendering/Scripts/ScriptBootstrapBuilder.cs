@@ -4,12 +4,20 @@ using GeoComponent.Contracts;
 
 namespace GeoComponent.Rendering.Scripts;
 
+/// <summary>
+/// Generates an inline IIFE that waits for DOM and <c>window.GeoArtist.bootstrap</c>, then calls it with the serialized <see cref="GeoComponentPayload"/>.
+/// </summary>
 public sealed class ScriptBootstrapBuilder(IGeoDataSerializer serializer)
 {
     private readonly IGeoDataSerializer _serializer = serializer;
     private const int MaxBootstrapRetries = 40;
     private const int RetryDelayMs = 50;
 
+    /// <summary>
+    /// Builds the bootstrap script for embedding after GeoArtist script tags have been loaded.
+    /// </summary>
+    /// <param name="payload">Payload to pass to the browser (JSON via <see cref="IGeoDataSerializer"/>).</param>
+    /// <returns>JavaScript source text.</returns>
     public string BuildBootstrapScript(GeoComponentPayload payload)
     {
         var serializedPayload = _serializer.Serialize(payload);

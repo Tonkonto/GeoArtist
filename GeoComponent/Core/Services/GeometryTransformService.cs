@@ -5,8 +5,12 @@ using ProjNet.CoordinateSystems.Transformations;
 
 namespace GeoComponent.Core.Services;
 
+/// <summary>
+/// Reprojects NTS geometries from a supported EPSG <paramref name="sourceSrid"/> to WGS 84 (EPSG:4326) using ProjNet.
+/// </summary>
 public class GeometryTransformService : IGeometryTransformService
 {
+    /// <inheritdoc />
     public Geometry TransformToWgs84(Geometry geometry, int sourceSrid)
     {
         if (geometry is null)
