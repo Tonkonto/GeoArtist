@@ -42,7 +42,17 @@ public sealed class GeoEditorOptions
     /// Adds button to draw CircleMarkers <br/>
     /// (a circle with a fixed scaled pixel radius)
     /// </summary>
+    /// <remarks>
+    /// Geoman-only feature, not standard GeoJSON geometry.
+    /// </remarks>
     public bool AllowCircleMarker { get; set; } = false;
+
+    /// <summary>
+    /// Adds button to draw Text layers
+    /// </summary>
+    /// <remarks>
+    /// Geoman-only feature, not standard GeoJSON geometry.
+    /// </remarks>
     public bool AllowText { get; set; } = false;
 
     //  == Toolbar 2 – Editing tools ==
@@ -64,7 +74,7 @@ public sealed class GeoEditorOptions
     /// Enables drawing for the shape "Cut" to draw a polygon that gets subtracted from all underlying polygons. <br/>
     /// This way you can create holes, cut polygons or polylines in half or remove parts of it.
     /// </remarks>
-    public bool AllowCut { get; set; } = true;
+    public bool AllowCut { get; set; } = false;
 
     /// <summary>
     /// Enables Dragging of shapes.
@@ -74,7 +84,7 @@ public sealed class GeoEditorOptions
     /// <summary>
     /// Enables Rotation of shapes
     /// </summary>
-    public bool AllowRotate { get; set; } = true;
+    public bool AllowRotate { get; set; } = false;
     // ===== /Geoman Tools =====
 
     // ===== Nodes, Polygons customization =====
@@ -182,7 +192,7 @@ public sealed class GeoEditorOptions
     /// <summary>
     /// Renders geoman Action Menus vertically when true.
     /// </summary>
-    public bool ActionsVertical { get; set; } = false;
+    public bool ActionsVertical { get; set; } = true;
     // ===== /UI customization =====
 
     // ===== System settings =====
