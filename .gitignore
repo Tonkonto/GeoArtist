@@ -361,5 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# user added
 /__Rebuild.bat
-/♦Plan♦.png

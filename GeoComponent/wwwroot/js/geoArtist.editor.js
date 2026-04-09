@@ -34,21 +34,19 @@ window.GeoArtist.editorRuntime = (function () {
             editor.outputElement.removeEventListener("input", editor.inputHandler);
         }
 
-        if (editor.map && editor.pmCreateHandler) {
-            editor.map.off("pm:create", editor.pmCreateHandler);
-        }
+        if (editor.map) {
+	        if (editor.pmCreateHandler)
+	            editor.map.off("pm:create", editor.pmCreateHandler);
 
-        if (editor.map && editor.pmEditHandler) {
-            editor.map.off("pm:edit", editor.pmEditHandler);
-        }
+	        if (editor.pmEditHandler)
+	            editor.map.off("pm:edit", editor.pmEditHandler);
 
-        if (editor.map && editor.pmRemoveHandler) {
-            editor.map.off("pm:remove", editor.pmRemoveHandler);
-        }
+	        if (editor.pmRemoveHandler)
+	            editor.map.off("pm:remove", editor.pmRemoveHandler);
 
-        if (editor.map && editor.pmCutHandler) {
-            editor.map.off("pm:cut", editor.pmCutHandler);
-        }
+	        if (editor.pmCutHandler)
+	            editor.map.off("pm:cut", editor.pmCutHandler);
+	    }
 
         geoman.disableGeoman(editor);
 
