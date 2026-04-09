@@ -70,7 +70,9 @@ window.GeoArtist.geoman = (function () {
         return {
             templineStyle: {
                 color,
-                opacity
+                opacity,
+                fillColor: color,
+                fillOpacity: opacity
             },
             hintlineStyle: {
                 color,
@@ -361,6 +363,7 @@ window.GeoArtist.geoman = (function () {
             drawRectangle: editorOptions.allowRectangle === true,
             drawPolygon: editorOptions.allowPolygon !== false,
             drawCircle: editorOptions.allowCircle === true,
+            drawText: editorOptions.allowText === true,
             editMode: editorOptions.allowEdit !== false,
             dragMode: editorOptions.allowDrag === true,
             cutPolygon: editorOptions.allowCut === true,

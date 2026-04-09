@@ -43,6 +43,7 @@ public sealed class GeoEditorOptions
     /// (a circle with a fixed scaled pixel radius)
     /// </summary>
     public bool AllowCircleMarker { get; set; } = false;
+    public bool AllowText { get; set; } = false;
 
     //  == Toolbar 2 – Editing tools ==
     /// <summary>
