@@ -11,6 +11,7 @@ public sealed class GeoEditorOptions
     public bool AllowRectangle { get; set; } = true;
     public bool AllowCircle { get; set; } = true;
     public bool AllowCircleMarker { get; set; } = false;
+    public bool AllowText { get; set; } = false;
 
     // Allow Modes 2
     public bool AllowEdit { get; set; } = true;
