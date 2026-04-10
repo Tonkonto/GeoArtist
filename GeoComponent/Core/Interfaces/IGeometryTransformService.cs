@@ -1,3 +1,4 @@
+using GeoComponent.Contracts;
 using NetTopologySuite.Geometries;
 
 namespace GeoComponent.Core.Interfaces;

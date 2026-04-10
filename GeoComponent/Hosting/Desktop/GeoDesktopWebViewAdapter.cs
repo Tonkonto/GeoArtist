@@ -6,27 +6,26 @@ using Microsoft.Web.WebView2.WinForms;
 
 namespace GeoComponent.Hosting.Desktop;
 
-public sealed class GeoDesktopWebViewAdapter : IDisposable
+/// <summary>
+/// WinForms WebView2 adapter that loads packaged <c>host.html</c>, maps static assets to a virtual HTTPS host, and forwards render messages.
+/// </summary>
+/// <param name="webView">Host WebView2 control.</param>
+/// <param name="hostBridge">Message builder for render payloads.</param>
+/// <param name="hostOptions">Virtual host configuration.</param>
+public sealed class GeoDesktopWebViewAdapter(WebView2 webView, WebViewHostBridge hostBridge, GeoDesktopHostOptions hostOptions) : IDisposable
 {
-    private readonly WebView2 _webView;
-    private readonly WebViewHostBridge _hostBridge;
-    private readonly GeoDesktopHostOptions _hostOptions;
+    private readonly WebView2 _webView = webView;
+    private readonly WebViewHostBridge _hostBridge = hostBridge;
+    private readonly GeoDesktopHostOptions _hostOptions = hostOptions;
 
     private bool _networkHooksRegistered;
     private bool _hostPageNavigated;
     private bool _hostReady;
     private string? _pendingRenderMessage;
 
-    public GeoDesktopWebViewAdapter(
-        WebView2 webView,
-        WebViewHostBridge hostBridge,
-        GeoDesktopHostOptions hostOptions)
-    {
-        _webView = webView;
-        _hostBridge = hostBridge;
-        _hostOptions = hostOptions;
-    }
-
+    /// <summary>
+    /// Ensures CoreWebView2 is initialized, registers the virtual host mapping, and navigates to <c>host.html</c> when needed.
+    /// </summary>
     public async Task EnsureReadyAsync()
     {
         if (_webView.CoreWebView2 is null)
@@ -51,21 +50,27 @@ public sealed class GeoDesktopWebViewAdapter : IDisposable
         }
     }
 
+    /// <summary>
+    /// Renders map mode on the hosted page.
+    /// </summary>
     public async Task RenderMapAsync(string? geoJson = null, GeoMapOptions? mapOptions = null)
     {
         await EnsureReadyAsync();
         QueueOrSendRenderMessage(_hostBridge.BuildMapRenderMessage(geoJson, mapOptions));
     }
 
-    public async Task RenderEditorAsync(
-        string? geoJson,
-        GeoMapOptions? mapOptions = null,
-        GeoEditorOptions? editorOptions = null)
+    /// <summary>
+    /// Renders editor mode on the hosted page.
+    /// </summary>
+    public async Task RenderEditorAsync(string? geoJson, GeoMapOptions? mapOptions = null, GeoEditorOptions? editorOptions = null)
     {
         await EnsureReadyAsync();
         QueueOrSendRenderMessage(_hostBridge.BuildEditorRenderMessage(geoJson, mapOptions, editorOptions));
     }
 
+    /// <summary>
+    /// Unhooks WebView2 events and network filters registered by this adapter.
+    /// </summary>
     public void Dispose()
     {
         if (_webView.CoreWebView2 is not { } core)

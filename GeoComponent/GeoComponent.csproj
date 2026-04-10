@@ -5,6 +5,27 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <StaticWebAssetBasePath>_content/GeoComponent</StaticWebAssetBasePath>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Version>2.0.0</Version>
+    <AssemblyTitle>GeoArtist</AssemblyTitle>
+    <Product>GeoArtist</Product>
+    <Description>A plug-and-play .NET UI component for interactive GeoJSON viewing and editing on a map, with out-of-the-box support for ASP.NET Core and WinForms (WebView2). Built on Leaflet with Leaflet-Geoman for geometry editing.</Description>
+    <PackageId>GeoArtist</PackageId>
+    <Authors>Tonkonto</Authors>
+    <Copyright>Copyright (c) GeoArtist contributors</Copyright>
+    <PackageTags>geojson;geo;map;editor;leaflet;geoman;aspnetcore;razor;taghelper;viewcomponent;winforms;webview2;staticwebassets</PackageTags>
+    <PackageProjectUrl>https://github.com/Tonkonto/GeoArtist</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Tonkonto/GeoArtist.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>false</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
@@ -21,6 +42,7 @@
     <PackageReference Include="NetTopologySuite" Version="2.6.0" />
     <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="4.0.0" />
     <PackageReference Include="ProjNET" Version="2.1.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   

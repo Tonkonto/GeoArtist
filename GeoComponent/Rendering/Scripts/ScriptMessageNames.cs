@@ -1,7 +1,7 @@
 namespace GeoComponent.Rendering.Scripts;
 
 /// <summary>
-/// JSON <c>type</c> discriminator strings for WebView2 host page messaging (<c>host.html</c> and <see cref="Hosting.Desktop.GeoDesktopWebViewAdapter"/>).
+/// JSON <c>type</c> discriminator strings for WebView2 host page messaging.
 /// </summary>
 public static class ScriptMessageNames
 {
@@ -11,7 +11,7 @@ public static class ScriptMessageNames
     public const string Render = "geoartist.render";
 
     /// <summary>
-    /// Message type posted by <c>host.html</c> when the page is ready to receive <see cref="Render"/> (handled in <see cref="Hosting.Desktop.GeoDesktopWebViewAdapter"/>).
+    /// Message type posted by <c>host.html</c> when the page is ready to receive <see cref="Render"/>.
     /// </summary>
     public const string HostReady = "geoartist.host.ready";
 }

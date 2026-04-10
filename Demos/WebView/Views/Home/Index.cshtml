@@ -51,6 +51,7 @@
     };
     var editorOptions = new GeoEditorOptions
     {
+        //map bevhavior
         SnapSensitivity = 10,
         NodeSize = 10,
         DrawColor = "#e11d48",
@@ -58,7 +59,12 @@
         UiScale = 0.85,
         ActionsScale = 0.9,
         TooltipScale = 0.8,
-        ActionsVertical = true,
+        //extra tools
+        AllowCircleMarker = true,
+        AllowText = true,
+        AllowCut = true,
+        AllowRotate = true,
+        //text area with sync geoJson
         UseGeoJsonTextArea = true
     };
 
