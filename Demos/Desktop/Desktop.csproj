@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\GeoComponent\GeoComponent.csproj" />
+    <ProjectReference Include="..\..\GeoArtist\GeoArtist.csproj" />
   </ItemGroup>
 
   <ItemGroup>

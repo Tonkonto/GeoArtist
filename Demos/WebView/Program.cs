@@ -1,4 +1,4 @@
-using GeoComponent;
+using GeoArtist;
 using WebView.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +9,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddControllersWithViews();
 
 // Geo service
-builder.Services.AddGeoComponent();
+builder.Services.AddGeoArtist();
 
 var app = builder.Build();
 

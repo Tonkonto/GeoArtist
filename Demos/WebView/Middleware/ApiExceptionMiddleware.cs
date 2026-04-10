@@ -1,4 +1,4 @@
-﻿using GeoComponent.Core.Exceptions;
+using GeoArtist.Core.Exceptions;
 using System.Text.Json;
 using WebView.Models.API;
 

@@ -15,7 +15,7 @@ A clear and concise description of what went wrong.
 - OS:
 - .NET SDK version (`dotnet --version`):
 - Hosting: ASP.NET Core / WinForms + WebView2 / other:
-- GeoArtist / GeoComponent version or commit:
+- GeoArtist version or commit:
 
 ## Reproduction
 
@@ -40,3 +40,4 @@ If the issue depends on GeoJSON or options, attach a minimal sample (redact secr
 ## Additional context
 
 Anything else that helps narrow the issue down.
+

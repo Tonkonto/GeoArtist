@@ -1,6 +1,6 @@
-﻿using GeoComponent.Core.Exceptions;
-using GeoComponent.Core.Interfaces;
-using GeoComponent.Core.Services;
+using GeoArtist.Core.Exceptions;
+using GeoArtist.Core.Interfaces;
+using GeoArtist.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;

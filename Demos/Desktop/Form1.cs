@@ -1,6 +1,6 @@
-using GeoComponent;
-using GeoComponent.Contracts;
-using GeoComponent.Hosting.Desktop;
+using GeoArtist;
+using GeoArtist.Contracts;
+using GeoArtist.Hosting.Desktop;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Web.WebView2.WinForms;
 
@@ -67,7 +67,7 @@ public partial class Form1 : Form
         InitializeComponent();
 
         var services = new ServiceCollection();
-        services.AddGeoComponentDesktop();
+        services.AddGeoArtistDesktop();
         _serviceProvider = services.BuildServiceProvider();
         var webViewHostBridge = _serviceProvider.GetRequiredService<WebViewHostBridge>();
         var desktopHostOptions = _serviceProvider.GetRequiredService<GeoDesktopHostOptions>();

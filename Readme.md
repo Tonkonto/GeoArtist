@@ -1,14 +1,14 @@
-﻿# GeoArtist
+# GeoArtist
 
 GeoArtist is a reusable geo-rendering component for .NET with two hosting adapters:
 - ASP.NET Core (TagHelper / ViewComponent)
 - Desktop WinForms (WebView2 demo host)
 
-The rendering/editor runtime lives inside `GeoComponent`. Demo apps are thin hosts.
+The rendering/editor runtime lives inside `GeoArtist`. Demo apps are thin hosts.
 
 ## Solution Layout
 
-- `GeoComponent`
+- `GeoArtist`
   - Core contracts and services
   - GeoJSON normalization and validation
   - SRID -> WGS84 transformation pipeline
@@ -32,25 +32,25 @@ The rendering/editor runtime lives inside `GeoComponent`. Demo apps are thin hos
 
 ## Installation (ASP.NET Core)
 
-1. Add project/package reference to `GeoComponent`.
+1. Add project/package reference to `GeoArtist`.
 2. Register services:
 
 ```csharp
-using GeoComponent;
+using GeoArtist;
 
-builder.Services.AddGeoComponent();
+builder.Services.AddGeoArtist();
 ```
 
 3. Add TagHelper import:
 
 ```cshtml
-@addTagHelper *, GeoComponent
+@addTagHelper *, GeoArtist
 ```
 
 4. Render map/editor:
 
 ```cshtml
-@using GeoComponent.Contracts
+@using GeoArtist.Contracts
 
 @{
     var mapOptions = new GeoMapOptions { MapId = "map-1", Height = "480px" };
@@ -72,7 +72,7 @@ builder.Services.AddGeoComponent();
 
 ## Asset Strategy
 
-Default asset set is configured in `GeoComponentAssetOptions`:
+Default asset set is configured in `GeoArtistAssetOptions`:
 - Leaflet CSS/JS (CDN)
 - GeoArtist CSS/JS (static web assets)
 - Leaflet-Geoman CSS/JS for editor mode (CDN)
@@ -81,8 +81,8 @@ If you have multiple components on one page, include assets once (`include-asset
 
 ## Desktop Demo
 
-`Desktop` project uses `GeoDesktopWebViewAdapter` + `WebViewHostBridge` from `GeoComponent.Hosting.Desktop`.
-No adapter file copy is required in host apps that reference `GeoComponent`.
+`Desktop` project uses `GeoDesktopWebViewAdapter` + `WebViewHostBridge` from `GeoArtist.Hosting.Desktop`.
+No adapter file copy is required in host apps that reference `GeoArtist`.
 
 - `Map` button renders map mode
 - `Editor` button renders editor mode
@@ -95,5 +95,6 @@ dotnet build GeoArtist.slnx
 
 ## Notes
 
-- `GeoComponent` is multi-targeted (`net8.0`, `net8.0-windows`).
+- `GeoArtist` is multi-targeted (`net8.0`, `net8.0-windows`).
 - `Desktop` target is `net8.0-windows` and requires WebView2 runtime on the machine.
+

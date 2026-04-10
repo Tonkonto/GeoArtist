@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in GeoArtist. This repository ships a reusable GeoJSON map and editor component for .NET (`GeoComponent`) plus demo hosts.
+Thank you for your interest in GeoArtist. This repository ships a reusable GeoJSON map and editor component for .NET (`GeoArtist`) plus demo hosts.
 
 ## Getting started
 
@@ -26,13 +26,13 @@ dotnet test GeoArtist.slnx
 
 ## Packaging (maintainers)
 
-The library project is `GeoComponent/GeoComponent.csproj`. To produce NuGet outputs locally:
+The library project is `GeoArtist/GeoArtist.csproj`. To produce NuGet outputs locally:
 
 ```bash
-dotnet pack GeoComponent/GeoComponent.csproj -c Release -o artifacts
+dotnet pack GeoArtist/GeoArtist.csproj -c Release -o artifacts
 ```
 
-This writes `GeoArtist.*.nupkg` and `GeoArtist.*.snupkg` into `artifacts/`. The package id is `GeoArtist`; namespaces and the primary assembly remain `GeoComponent`.
+This writes `GeoArtist.*.nupkg` and `GeoArtist.*.snupkg` into `artifacts/`. The package id is `GeoArtist`; namespaces and the primary assembly are `GeoArtist`.
 
 ## Pull requests
 
