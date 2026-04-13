@@ -12,60 +12,46 @@ public sealed class HomeController : Controller
     {
         return View(new HomeMapDemoViewModel
         {
-            GeoJson = BuildRectangleFeatureCollection(74.60, 42.87, 0.01, 0.01, "Rectangle A")
+            GeoJson = BuildRectangleFeatureCollection(74.60, 42.87, 74.61, 42.88, "Rectangle A")
         });
-    }
-
-    /// <summary>Returns executable JavaScript that calls <c>window.GeoArtist.updateGeoJson(...)</c> with demo geometry.</summary>
-    [HttpGet]
-    public IActionResult TestPolygon()
-    {
-        var geoJson = BuildRectangleFeatureCollection(74.60, 42.87, 0.01, 0.01, "Rectangle TestPolygon");
-        return ScriptUpdateGeoJson(geoJson);
     }
 
     [HttpGet]
     public IActionResult DemoGeoJsonSingle()
     {
-        var geoJson = BuildRectangleFeatureCollection(74.605, 42.872, 0.014, 0.009, "Rectangle GeoJson Single");
-        return ScriptUpdateGeoJson(geoJson);
+        var geoJson = BuildRectangleFeatureCollection(74.605, 42.872, 74.619, 42.881, "Rectangle GeoJson Single");
+        return Content(geoJson, "application/json");
     }
 
     [HttpGet]
     public IActionResult DemoGeoJsonBatch()
     {
-        return ScriptUpdateGeoJson(BuildRectangleFeatureCollectionBatch());
+        return Content(BuildRectangleFeatureCollectionBatch(), "application/json");
     }
 
     [HttpGet]
     public IActionResult DemoWktSingle()
     {
-        var geoJson = BuildRectangleFeatureCollection(74.622, 42.866, 0.010, 0.013, "Rectangle WKT Single");
-        return ScriptUpdateGeoJson(geoJson);
+        var geoJson = BuildRectangleFeatureCollection(74.622, 42.866, 74.632, 42.879, "Rectangle WKT Single");
+        return Content(geoJson, "application/json");
     }
 
     [HttpGet]
     public IActionResult DemoWktBatch()
     {
-        return ScriptUpdateGeoJson(BuildRectangleFeatureCollectionPair());
+        return Content(BuildRectangleFeatureCollectionPair(), "application/json");
     }
 
-    private static IActionResult ScriptUpdateGeoJson(string geoJson)
+    private static string BuildRectangleFeatureCollection(double lng1, double lat1, double lng2, double lat2, string name)
     {
-        // System.Text.Json output is valid JS when spliced here (JSON ⊆ expression grammar for these payloads).
-        var body = $"window.GeoArtist.updateGeoJson({geoJson});";
-        return new ContentResult
-        {
-            Content = body,
-            ContentType = "application/javascript",
-            StatusCode = 200
-        };
-    }
-
-    private static string BuildRectangleFeatureCollection(double minLon, double minLat, double width, double height, string name)
-    {
-        var maxLon = minLon + width;
-        var maxLat = minLat + height;
+        double[][] rectangle =
+        [
+            [lng1, lat1],
+            [lng2, lat1],
+            [lng2, lat2],
+            [lng1, lat2],
+            [lng1, lat1]
+        ];
 
         var payload = new
         {
@@ -79,17 +65,7 @@ public sealed class HomeController : Controller
                     geometry = new
                     {
                         type = "Polygon",
-                        coordinates = new[]
-                        {
-                            new[]
-                            {
-                                new[] { minLon, minLat },
-                                new[] { maxLon, minLat },
-                                new[] { maxLon, maxLat },
-                                new[] { minLon, maxLat },
-                                new[] { minLon, minLat }
-                            }
-                        }
+                        coordinates = new[] { rectangle }
                     }
                 }
             }
@@ -105,8 +81,8 @@ public sealed class HomeController : Controller
             type = "FeatureCollection",
             features = new object[]
             {
-                BuildRectangleFeature(74.59, 42.865, 0.01, 0.01, "Rectangle WKT Batch A"),
-                BuildRectangleFeature(74.625, 42.878, 0.008, 0.009, "Rectangle WKT Batch B")
+                BuildRectangleFeature(74.59, 42.865, 74.601, 42.875, "Rectangle WKT Batch A"),
+                BuildRectangleFeature(74.625, 42.878, 74.633, 42.887, "Rectangle WKT Batch B")
             }
         };
 
@@ -120,18 +96,24 @@ public sealed class HomeController : Controller
             type = "FeatureCollection",
             features = new object[]
             {
-                BuildRectangleFeature(74.602, 42.871, 0.009, 0.008, "Rectangle GeoJson Batch A"),
-                BuildRectangleFeature(74.616, 42.884, 0.012, 0.007, "Rectangle GeoJson Batch B")
+                BuildRectangleFeature(74.602, 42.871, 74.611, 42.879, "Rectangle GeoJson Batch A"),
+                BuildRectangleFeature(74.616, 42.884, 74.628, 42.891, "Rectangle GeoJson Batch B")
             }
         };
 
         return JsonSerializer.Serialize(payload, SerializerOptions);
     }
 
-    private static object BuildRectangleFeature(double minLon, double minLat, double width, double height, string name)
+    private static object BuildRectangleFeature(double lng1, double lat1, double lng2, double lat2, string name)
     {
-        var maxLon = minLon + width;
-        var maxLat = minLat + height;
+        double[][] rectangle =
+        [
+            [lng1, lat1],
+            [lng2, lat1],
+            [lng2, lat2],
+            [lng1, lat2],
+            [lng1, lat1]
+        ];
 
         return new
         {
@@ -140,17 +122,7 @@ public sealed class HomeController : Controller
             geometry = new
             {
                 type = "Polygon",
-                coordinates = new[]
-                {
-                    new[]
-                    {
-                        new[] { minLon, minLat },
-                        new[] { maxLon, minLat },
-                        new[] { maxLon, maxLat },
-                        new[] { minLon, maxLat },
-                        new[] { minLon, minLat }
-                    }
-                }
+                coordinates = new[] { rectangle }
             }
         };
     }

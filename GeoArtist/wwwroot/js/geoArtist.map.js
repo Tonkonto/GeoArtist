@@ -294,12 +294,43 @@ window.GeoArtist.mapRuntime = (function () {
         return map;
     }
 
+    function exportLayerFeatureCollection(mapId) {
+        const layer = state.layers[mapId];
+
+        if (!layer || typeof layer.toGeoJSON !== "function") {
+            return null;
+        }
+
+        const geo = layer.toGeoJSON();
+
+        if (!geo || typeof geo !== "object") {
+            return null;
+        }
+
+        if (geo.type === "FeatureCollection") {
+            return geo;
+        }
+
+        if (geo.type === "Feature") {
+            return {
+                type: "FeatureCollection",
+                features: [geo]
+            };
+        }
+
+        return {
+            type: "FeatureCollection",
+            features: []
+        };
+    }
+
     return {
         ensureMap,
         clearShapes,
         buildGeoJsonLayer,
         extendBoundsFromLayer,
         renderGeoItems,
-        renderMapFromPayload
+        renderMapFromPayload,
+        exportLayerFeatureCollection
     };
 })();

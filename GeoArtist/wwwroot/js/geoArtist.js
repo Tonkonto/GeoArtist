@@ -57,6 +57,18 @@ window.GeoArtist.getEditor = function (mapId) {
     return window.GeoArtist.state.getEditor(mapId);
 };
 
+window.GeoArtist.exportDisplayedGeoJson = function (mapId) {
+    const editorState = window.GeoArtist.state.getEditor(mapId);
+
+    if (editorState) {
+        return window.GeoArtist.geoJson.exportEditorGeoItems(editorState);
+    }
+
+    return window.GeoArtist.mapRuntime.exportLayerFeatureCollection(mapId);
+};
+
+window.GeoArtist.ExportDisplayedGeoJson = window.GeoArtist.exportDisplayedGeoJson;
+
 Object.defineProperty(window.GeoArtist, "maps", {
     get: function () {
         return window.GeoArtist.state.maps;

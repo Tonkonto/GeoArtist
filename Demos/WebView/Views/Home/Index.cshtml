@@ -7,11 +7,18 @@
 <h2 class="mb-3">GeoArtist Demo</h2>
 
 <div class="d-flex gap-2 flex-wrap mb-3 js-map-demo-bar">
-    <button type="button" class="btn btn-sm btn-outline-primary" data-src="@Url.Action("TestPolygon", "Home")">GET  /Home/TestPolygon</button>
-    <button type="button" class="btn btn-sm btn-outline-primary" data-src="@Url.Action("DemoGeoJsonSingle", "Home")">POST /api/geo/geojson</button>
-    <button type="button" class="btn btn-sm btn-outline-primary" data-src="@Url.Action("DemoGeoJsonBatch", "Home")">POST /api/geo/geojson/batch</button>
-    <button type="button" class="btn btn-sm btn-outline-info" data-src="@Url.Action("DemoWktSingle", "Home")">POST /api/geo/wkt</button>
-    <button type="button" class="btn btn-sm btn-outline-info" data-src="@Url.Action("DemoWktBatch", "Home")">POST /api/geo/wkt/batch</button>
+    <button type="button" class="btn btn-sm btn-outline-primary js-client-rectangle-btn">Client -> GeoArtist.UpdateGeoJson()</button>
+    <button type="button" class="btn btn-sm btn-outline-primary" data-src="@Url.Action("DemoGeoJsonSingle", "Home")">GET /Home/DemoGeoJsonSingle -> POST /api/geo/geojson</button>
+    <button type="button" class="btn btn-sm btn-outline-primary" data-src="@Url.Action("DemoGeoJsonBatch", "Home")">GET /Home/DemoGeoJsonBatch -> POST /api/geo/geojson/batch</button>
+    <button type="button" class="btn btn-sm btn-outline-info" data-src="@Url.Action("DemoWktSingle", "Home")">GET /Home/DemoWktSingle -> POST /api/geo/wkt</button>
+    <button type="button" class="btn btn-sm btn-outline-info" data-src="@Url.Action("DemoWktBatch", "Home")">GET /Home/DemoWktBatch -> POST /api/geo/wkt/batch</button>
+</div>
+
+<p class="mb-2">Helpers tools</p>
+<div class="d-flex gap-2 flex-wrap mb-3 js-showcase-bar">
+    <button type="button" class="btn btn-sm btn-outline-primary js-randomize-options-btn">UpdateGeoMapOptions()</button>
+    <button type="button" class="btn btn-sm btn-outline-primary js-clear-geojson-btn">ClearGeoJson()</button>
+    <button type="button" class="btn btn-sm btn-outline-primary js-download-geojson" data-editor-map-id="demo-editor">Download GeoJSON (layers)</button>
 </div>
 
 @{
@@ -61,11 +68,89 @@
 
 @section Scripts {
 <script>
-// fetch executable JS from Home/* actions; server body is literally `window.GeoArtist.updateGeoJson({...});`
+// Server returns GeoJSON, client applies it via GeoArtist.UpdateGeoJson.
 document.querySelector(".js-map-demo-bar")?.addEventListener("click", function (e) {
     var b = e.target.closest("button[data-src]");
     if (!b) return;
-    fetch(b.dataset.src).then(function (r) { return r.text(); }).then(eval);
+    fetch(b.dataset.src)
+        .then(function (r) { return r.json(); })
+        .then(function (geoJson) { window.GeoArtist.UpdateGeoJson(geoJson); });
 });
+
+window.UpdateGeoMapOptions = function () {
+    window.GeoArtist.UpdateMapOptions({
+        polygonColor: window.randomHexColor(),
+        polygonOpacity: window.randomBetween(0.15, 1.0)
+    });
+    window.GeoArtist.UpdateEditorOptions({
+        drawColor: window.randomHexColor(),
+        nodeSize: Math.floor(window.randomBetween(6, 24)),
+        snapSensitivity: Math.floor(window.randomBetween(0, 64)),
+        uiScale: window.randomBetween(0.5, 1.0),
+        useGeoJsonTextArea: true,
+        autoApplyJsonChanges: true
+    });
+};
+
+window.ClearGeoJson = function () {
+    window.GeoArtist.ClearGeoJson();
+};
+
+document.querySelector(".js-client-rectangle-btn")?.addEventListener("click", function () {
+            var geoJs = {
+        type: "FeatureCollection",
+        features: [{
+            type: "Feature",
+            properties: { source: "browser", name: "Client rectangle" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [[
+                    [74.58, 42.86],
+                    [74.595, 42.86],
+                    [74.595, 42.875],
+                    [74.58, 42.875],
+                    [74.58, 42.86]
+                ]]
+            }
+        }]
+    };
+    window.GeoArtist.UpdateGeoJson(geoJs);
+});
+
+document.querySelector(".js-showcase-bar")?.addEventListener("click", function (e) {
+    var dl = e.target.closest(".js-download-geojson");
+    if (dl) {
+        var mapId = dl.dataset.editorMapId || "demo-editor";
+        var gj = window.GeoArtist.exportDisplayedGeoJson(mapId);
+        if (!gj) {
+            console.warn("GeoArtist.exportDisplayedGeoJson: nothing to export for", mapId);
+            return;
+        }
+        var blob = new Blob([JSON.stringify(gj, null, 2)], { type: "application/geo+json" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = mapId + "-" + "geoJson.json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        return;
+    }
+    if (e.target.closest(".js-clear-geojson-btn")) {
+        window.ClearGeoJson();
+    }
+});
+
+document.querySelector(".js-randomize-options-btn")?.addEventListener("click", function (e) {
+    window.UpdateGeoMapOptions();
+});
+
+
+// === Helpers ===
+window.randomHexColor = function () {
+    return "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
+};
+
+window.randomBetween = function (min, max) {
+    return min + Math.random() * (max - min);
+};
 </script>
 }

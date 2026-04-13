@@ -115,6 +115,30 @@ window.GeoArtist.hostRuntime = (function () {
         return instances.get(mapId);
     }
 
+    function captureGeoJsonState(mapId, mode) {
+        const modeLc = (mode ?? "map").toLowerCase();
+
+        if (modeLc === "editor") {
+            const editorState = window.GeoArtist.state.getEditor(mapId);
+
+            if (editorState) {
+                return window.GeoArtist.geoJson.exportEditorGeoItems(editorState);
+            }
+
+            return null;
+        }
+
+        return window.GeoArtist.mapRuntime.exportLayerFeatureCollection(mapId);
+    }
+
+    function hydrateGeoJsonPayload(next, mapId, entry) {
+        const live = captureGeoJsonState(mapId, entry.mode);
+
+        if (live && typeof live === "object" && Array.isArray(live.features)) {
+            next.geoJson = live;
+        }
+    }
+
     function initialize(payload) {
         if (!payload) {
             console.error("GeoArtist.initialize: payload is required.");
@@ -135,10 +159,12 @@ window.GeoArtist.hostRuntime = (function () {
         rememberInstance(mapId);
         instances.set(mapId, {
             mode,
-            lastPayload: snapshot
+            lastPayload: null
         });
+        const result = applyBootstrapPayload(snapshot);
+        getEntry(mapId).lastPayload = clonePayload(snapshot);
 
-        return applyBootstrapPayload(snapshot);
+        return result;
     }
 
     function disposeInstance(mapId) {
@@ -172,8 +198,8 @@ window.GeoArtist.hostRuntime = (function () {
 
             const next = clonePayload(entry.lastPayload);
             next.geoJson = geoJson;
-            entry.lastPayload = clonePayload(next);
             applyBootstrapPayload(next);
+            entry.lastPayload = clonePayload(next);
         }
     }
 
@@ -193,10 +219,11 @@ window.GeoArtist.hostRuntime = (function () {
             }
 
             const next = clonePayload(entry.lastPayload);
+            hydrateGeoJsonPayload(next, id, entry);
             next.mapOptions = shallowMerge(next.mapOptions, mapOptions);
             next.mapOptions.mapId = id;
-            entry.lastPayload = clonePayload(next);
             applyBootstrapPayload(next);
+            entry.lastPayload = clonePayload(next);
         }
     }
 
@@ -216,9 +243,10 @@ window.GeoArtist.hostRuntime = (function () {
             }
 
             const next = clonePayload(entry.lastPayload);
+            hydrateGeoJsonPayload(next, id, entry);
             next.editorOptions = shallowMerge(next.editorOptions, editorOptions);
-            entry.lastPayload = clonePayload(next);
             applyBootstrapPayload(next);
+            entry.lastPayload = clonePayload(next);
         }
     }
 
@@ -234,6 +262,13 @@ window.GeoArtist.hostRuntime = (function () {
         };
 
         updateGeoJson(empty, mapId);
+        const editorState = mapId ? window.GeoArtist.state.getEditor(mapId) : null;
+        const useTextArea = (editorState?.editorOptions?.useGeoJsonTextArea) !== false;
+        if (editorState && useTextArea)
+            window.GeoArtist.editorRuntime.syncEditorOutputFromLayers(editorState, "hostClear");
+        const entry = mapId ? getEntry(mapId) : null;
+        if (entry?.lastPayload)
+            entry.lastPayload.geoJson = clonePayload(empty);
     }
 
     function getManagedMapIds() {
