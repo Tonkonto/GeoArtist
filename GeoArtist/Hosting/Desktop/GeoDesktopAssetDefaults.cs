@@ -20,6 +20,7 @@ internal static class GeoDesktopAssetDefaults
             hostOptions.ToAssetUrl("js/geoArtist.map.js"),
             hostOptions.ToAssetUrl("js/geoArtist.geoman.js"),
             hostOptions.ToAssetUrl("js/geoArtist.editor.js"),
+            hostOptions.ToAssetUrl("js/geoArtist.hostRuntime.js"),
             hostOptions.ToAssetUrl("js/geoArtist.js")
         ];
     }

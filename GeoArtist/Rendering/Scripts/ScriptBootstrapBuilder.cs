@@ -5,7 +5,7 @@ using GeoArtist.Contracts;
 namespace GeoArtist.Rendering.Scripts;
 
 /// <summary>
-/// Generates an inline IIFE that waits for DOM and <c>window.GeoArtist.bootstrap</c>, then calls it with the serialized <see cref="GeoArtistPayload"/>.
+/// Generates an inline IIFE that waits for DOM and <c>window.GeoArtist.initialize</c>, then calls it with the serialized <see cref="GeoArtistPayload"/>.
 /// </summary>
 public sealed class ScriptBootstrapBuilder(IGeoDataSerializer serializer)
 {
@@ -32,13 +32,13 @@ public sealed class ScriptBootstrapBuilder(IGeoDataSerializer serializer)
         sb.AppendLine("  function start(attempt) {");
         sb.AppendLine("    const retry = (attempt ?? 0) + 1;");
         sb.AppendLine();
-        sb.AppendLine("    if (!window.GeoArtist || typeof window.GeoArtist.bootstrap !== 'function') {");
+        sb.AppendLine("    if (!window.GeoArtist || typeof window.GeoArtist.initialize !== 'function') {");
         sb.AppendLine($"      if (retry <= {MaxBootstrapRetries}) {{");
         sb.AppendLine($"        setTimeout(function () {{ start(retry); }}, {RetryDelayMs});");
         sb.AppendLine("        return;");
         sb.AppendLine("      }");
         sb.AppendLine();
-        sb.AppendLine("      console.error('GeoArtist bootstrap API is unavailable after retries.');");
+        sb.AppendLine("      console.error('GeoArtist initialize API is unavailable after retries.');");
         sb.AppendLine("      return;");
         sb.AppendLine("    }");
         sb.AppendLine();
@@ -53,7 +53,7 @@ public sealed class ScriptBootstrapBuilder(IGeoDataSerializer serializer)
         sb.AppendLine("      return;");
         sb.AppendLine("    }");
         sb.AppendLine();
-        sb.AppendLine("    window.GeoArtist.bootstrap(payload);");
+        sb.AppendLine("    window.GeoArtist.initialize(payload);");
         sb.AppendLine("  }");
         sb.AppendLine();
         sb.AppendLine("  if (document.readyState === 'loading') {");

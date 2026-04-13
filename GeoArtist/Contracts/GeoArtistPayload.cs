@@ -1,7 +1,7 @@
 namespace GeoArtist.Contracts;
 
 /// <summary>
-/// Serializable payload passed to the browser runtime (<c>GeoArtist.bootstrap</c>) after server-side normalization.
+/// Serializable payload passed to the browser runtime (<c>GeoArtist.initialize</c>) after server-side normalization.
 /// </summary>
 public sealed class GeoArtistPayload
 {

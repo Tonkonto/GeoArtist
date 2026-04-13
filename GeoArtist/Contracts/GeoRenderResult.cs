@@ -6,7 +6,7 @@ namespace GeoArtist.Contracts;
 public sealed class GeoRenderResult
 {
     /// <summary>
-    /// HTML fragment containing the map shell and an inline script that calls <c>GeoArtist.bootstrap</c> when assets are embedded.
+    /// HTML fragment containing the map shell and an inline script that calls <c>GeoArtist.initialize</c> when assets are embedded.
     /// </summary>
     public string Html { get; set; } = "";
 
@@ -31,7 +31,7 @@ public sealed class GeoRenderResult
     public IReadOnlyList<string> StylePaths { get; init; } = [];
 
     /// <summary>
-    /// Script URLs in load order: Leaflet, Geoman (editor), then GeoArtist modules ending with <c>geoArtist.js</c>.
+    /// Script URLs in load order: Leaflet, Geoman (editor), then GeoArtist modules (<c>geoArtist.hostRuntime.js</c> before <c>geoArtist.js</c>).
     /// </summary>
     public IReadOnlyList<string> ScriptPaths { get; init; } = [];
 }

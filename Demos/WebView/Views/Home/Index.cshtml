@@ -1,39 +1,21 @@
-@using GeoArtist.Contracts
-@using System.Text.Json
+@model WebView.Models.Home.HomeMapDemoViewModel
 
 @{
     ViewData["Title"] = "GeoArtist Demo";
+}
 
-    var sampleGeoJson = JsonSerializer.Serialize(new
-    {
-        type = "FeatureCollection",
-        features = new[]
-        {
-            new
-            {
-                type = "Feature",
-                properties = new { name = "Sample polygon" },
-                geometry = new
-                {
-                    type = "Polygon",
-                    coordinates = new[]
-                    {
-                        new[]
-                        {
-                            new[] { 74.60, 42.87 },
-                            new[] { 74.61, 42.87 },
-                            new[] { 74.61, 42.88 },
-                            new[] { 74.60, 42.88 },
-                            new[] { 74.60, 42.87 }
-                        }
-                    }
-                }
-            }
-        }
-    });
+<h2 class="mb-3">GeoArtist Demo</h2>
 
-    // View mode Map
-    var mapOptions = new GeoMapOptions
+<div class="d-flex gap-2 flex-wrap mb-3 js-map-demo-bar">
+    <button type="button" class="btn btn-sm btn-outline-primary" data-src="@Url.Action("TestPolygon", "Home")">GET  /Home/TestPolygon</button>
+    <button type="button" class="btn btn-sm btn-outline-primary" data-src="@Url.Action("DemoGeoJsonSingle", "Home")">POST /api/geo/geojson</button>
+    <button type="button" class="btn btn-sm btn-outline-primary" data-src="@Url.Action("DemoGeoJsonBatch", "Home")">POST /api/geo/geojson/batch</button>
+    <button type="button" class="btn btn-sm btn-outline-info" data-src="@Url.Action("DemoWktSingle", "Home")">POST /api/geo/wkt</button>
+    <button type="button" class="btn btn-sm btn-outline-info" data-src="@Url.Action("DemoWktBatch", "Home")">POST /api/geo/wkt/batch</button>
+</div>
+
+@{
+    var mapOptions = new GeoArtist.Contracts.GeoMapOptions
     {
         MapId = "demo-map",
         Height = "420px",
@@ -41,17 +23,15 @@
         PolygonOpacity = 0.45
     };
 
-    // Editor mode Map
-    var editorMapOptions = new GeoMapOptions
+    var editorMapOptions = new GeoArtist.Contracts.GeoMapOptions
     {
         MapId = "demo-editor",
         Height = "420px",
         PolygonColor = "#0f766e",
         PolygonOpacity = 0.45
     };
-    var editorOptions = new GeoEditorOptions
+    var editorOptions = new GeoArtist.Contracts.GeoEditorOptions
     {
-        //map bevhavior
         SnapSensitivity = 10,
         NodeSize = 10,
         DrawColor = "#e11d48",
@@ -59,250 +39,33 @@
         UiScale = 0.85,
         ActionsScale = 0.9,
         TooltipScale = 0.8,
-        //extra tools
         AllowCircleMarker = true,
         AllowText = true,
         AllowCut = true,
         AllowRotate = true,
-        //text area with sync geoJson
         UseGeoJsonTextArea = true
     };
-
 }
-
-<h2 class="mb-3">GeoArtist Demo</h2>
-
-<div class="d-flex gap-2 flex-wrap mb-3">
-    <button class="btn btn-sm btn-outline-primary"  type="button"   onclick="renderFromController()"> GET  /Home/TestPolygon      </button>
-    <button class="btn btn-sm btn-outline-primary"  type="button"   onclick="postGeoJsonSingle()">    POST /api/geo/geojson       </button>
-    <button class="btn btn-sm btn-outline-primary"  type="button"   onclick="postGeoJsonBatch()">     POST /api/geo/geojson/batch </button>
-    <button class="btn btn-sm btn-outline-info"     type="button"   onclick="postWktSingle()">        POST /api/geo/wkt           </button>
-    <button class="btn btn-sm btn-outline-info"     type="button"   onclick="postWktBatch()">         POST /api/geo/wkt/batch     </button>
-</div>
-
-<div class="row g-3 mb-4">
-    <div class="col-lg-6">
-        <h5>Request</h5>
-        <pre id="requestBox" class="border rounded p-2 bg-light" style="min-height:220px"></pre>
-    </div>
-    <div class="col-lg-6">
-        <h5>Response</h5>
-        <pre id="responseBox" class="border rounded p-2 bg-light" style="min-height:220px"></pre>
-    </div>
-</div>
 
 <div class="row g-3">
     <div class="col-xl-6">
         <h4>Map Mode</h4>
-        <geo-map geo-json="@sampleGeoJson" map-options="@mapOptions" include-assets="false" />
+        <geo-map geo-json="@Model.GeoJson" map-options="@mapOptions" include-assets="false" />
     </div>
 
     <div class="col-xl-6">
         <h4>Editor Mode</h4>
-        <geo-map geo-json="@sampleGeoJson" map-options="@editorMapOptions" editor-options="@editorOptions" mode="editor" include-assets="true" />
+        <geo-map geo-json="@Model.GeoJson" map-options="@editorMapOptions" editor-options="@editorOptions" mode="editor" include-assets="true" />
     </div>
 </div>
 
 @section Scripts {
 <script>
-const mapId = "demo-map";
-const editorMapId = "demo-editor";
-
-function setRequest(url, payload) {
-    const box = document.getElementById("requestBox");
-    box.textContent = `${url}\n\n${JSON.stringify(payload, null, 2)}`;
-}
-
-function setResponse(data) {
-    const box = document.getElementById("responseBox");
-    box.textContent = typeof data === "string" ? data : JSON.stringify(data, null, 2);
-}
-
-function canRenderWithGeoArtist() {
-    if (
-        window.GeoArtist &&
-        typeof window.GeoArtist.renderMapFromPayload === "function" &&
-        typeof window.GeoArtist.renderEditorFromPayload === "function"
-    ) {
-        return true;
-    }
-
-    setResponse("GeoArtist runtime is unavailable. Check asset loading in DevTools.");
-    return false;
-}
-
-function resolveMapOptionsForRerender() {
-    return {
-        mapId
-    };
-}
-
-function resolveEditorRuntimeOptions() {
-    const editorState = window.GeoArtist?.getEditor?.(editorMapId);
-
-    if (editorState?.options && editorState?.editorOptions) {
-        return {
-            mapOptions: editorState.options,
-            editorOptions: editorState.editorOptions
-        };
-    }
-
-    return {
-        mapOptions: { mapId: editorMapId },
-        editorOptions: {}
-    };
-}
-
-async function requestJson(url, payload) {
-    setRequest(url, payload);
-
-    const response = await fetch(url, {
-        method: payload ? "POST" : "GET",
-        headers: payload ? { "Content-Type": "application/json" } : undefined,
-        body: payload ? JSON.stringify(payload) : undefined
-    });
-
-    const text = await response.text();
-    let data;
-
-    try {
-        data = text ? JSON.parse(text) : null;
-    } catch {
-        data = text;
-    }
-
-    setResponse(data);
-
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-    }
-
-    return data;
-}
-
-function renderGeoJsonToBothModes(geoJson) {
-    if (!canRenderWithGeoArtist()) {
-        return;
-    }
-
-    const editorRuntimeOptions = resolveEditorRuntimeOptions();
-
-    window.GeoArtist.renderMapFromPayload({
-        mode: "map",
-        mapOptions: resolveMapOptionsForRerender(),
-        geoJson
-    });
-
-    window.GeoArtist.renderEditorFromPayload({
-        mode: "editor",
-        mapOptions: editorRuntimeOptions.mapOptions,
-        editorOptions: editorRuntimeOptions.editorOptions,
-        geoJson
-    });
-}
-
-function renderApiResult(data) {
-    if (!canRenderWithGeoArtist()) {
-        return;
-    }
-
-    const items = Array.isArray(data) ? data : [data];
-    const geoItems = items
-        .filter(x => x && x.geoJson)
-        .map(x => {
-            try {
-                return JSON.parse(x.geoJson);
-            } catch {
-                return null;
-            }
-        })
-        .filter(Boolean);
-
-    renderGeoJsonToBothModes({
-        type: "FeatureCollection",
-        features: geoItems.flatMap(item => item?.features ?? [])
-    });
-}
-
-async function renderFromController() {
-    const data = await requestJson("/Home/TestPolygon", null);
-
-    if (!canRenderWithGeoArtist()) {
-        return;
-    }
-
-    renderGeoJsonToBothModes(data);
-}
-
-async function postGeoJsonSingle() {
-    const payload = {
-        geoJson: JSON.stringify({
-            type: "Polygon",
-            coordinates: [[
-                [74.60, 42.87],
-                [74.62, 42.87],
-                [74.62, 42.89],
-                [74.60, 42.89],
-                [74.60, 42.87]
-            ]]
-        })
-    };
-
-    const data = await requestJson("/api/geo/geojson", payload);
-    renderApiResult(data);
-}
-
-async function postGeoJsonBatch() {
-    const payload = {
-        geoJsonList: [
-            JSON.stringify({
-                type: "Polygon",
-                coordinates: [[
-                    [74.60, 42.87],
-                    [74.61, 42.87],
-                    [74.61, 42.88],
-                    [74.60, 42.88],
-                    [74.60, 42.87]
-                ]]
-            }),
-            JSON.stringify({
-                type: "Polygon",
-                coordinates: [[
-                    [74.62, 42.87],
-                    [74.63, 42.87],
-                    [74.63, 42.88],
-                    [74.62, 42.88],
-                    [74.62, 42.87]
-                ]]
-            })
-        ]
-    };
-
-    const data = await requestJson("/api/geo/geojson/batch", payload);
-    renderApiResult(data);
-}
-
-async function postWktSingle() {
-    const payload = {
-        wkt: "POLYGON((74.60 42.87,74.62 42.87,74.62 42.89,74.60 42.89,74.60 42.87))",
-        srid: 4326
-    };
-
-    const data = await requestJson("/api/geo/wkt", payload);
-    renderApiResult(data);
-}
-
-async function postWktBatch() {
-    const payload = {
-        wktList: [
-            "POLYGON((74.60 42.87,74.61 42.87,74.61 42.88,74.60 42.88,74.60 42.87))",
-            "POLYGON((74.62 42.87,74.63 42.87,74.63 42.88,74.62 42.88,74.62 42.87))"
-        ],
-        srid: 4326
-    };
-
-    const data = await requestJson("/api/geo/wkt/batch", payload);
-    renderApiResult(data);
-}
+// fetch executable JS from Home/* actions; server body is literally `window.GeoArtist.updateGeoJson({...});`
+document.querySelector(".js-map-demo-bar")?.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-src]");
+    if (!b) return;
+    fetch(b.dataset.src).then(function (r) { return r.text(); }).then(eval);
+});
 </script>
 }

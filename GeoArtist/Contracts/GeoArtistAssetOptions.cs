@@ -28,6 +28,7 @@ public sealed class GeoArtistAssetOptions
         "/GeoArtist/js/geoArtist.map.js",
         "/GeoArtist/js/geoArtist.geoman.js",
         "/GeoArtist/js/geoArtist.editor.js",
+        "/GeoArtist/js/geoArtist.hostRuntime.js",
         "/GeoArtist/js/geoArtist.js"
     ];
 

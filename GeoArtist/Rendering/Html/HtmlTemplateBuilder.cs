@@ -20,7 +20,7 @@ public sealed class HtmlTemplateBuilder
 
         var sb = new StringBuilder();
 
-        sb.AppendLine($"""<div class="geoartist-shell" data-geoartist-mode="{payload.Mode}">""");
+        sb.AppendLine($"""<div class="geoartist-shell" data-geoartist-mode="{payload.Mode}" data-geoartist-map-id="{mapId}">""");
         sb.AppendLine($"""  <div id="{mapId}" class="geoartist-map" style="height: {height};"></div>""");
 
         if (payload.IsEditable && (payload.EditorOptions?.UseGeoJsonTextArea ?? true))

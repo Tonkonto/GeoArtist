@@ -23,6 +23,7 @@
     <script src="./js/geoArtist.map.js"></script>
     <script src="./js/geoArtist.geoman.js"></script>
     <script src="./js/geoArtist.editor.js"></script>
+    <script src="./js/geoArtist.hostRuntime.js"></script>
     <script src="./js/geoArtist.js"></script>
 
     <script>
@@ -57,6 +58,7 @@
                 }
 
                 shell.setAttribute("data-geoartist-mode", mode);
+                shell.setAttribute("data-geoartist-map-id", mapId);
 
                 Array.from(shell.querySelectorAll(".geoartist-map")).forEach(function (element) {
                     if (element.id !== mapId) {
@@ -98,11 +100,11 @@
 
                 ensureContainer(payload);
 
-                if (!hasFunction(window.GeoArtist, "bootstrap")) {
+                if (!hasFunction(window.GeoArtist, "initialize")) {
                     return;
                 }
 
-                window.GeoArtist.bootstrap(payload);
+                window.GeoArtist.initialize(payload);
             }
 
             if (window.chrome?.webview) {
