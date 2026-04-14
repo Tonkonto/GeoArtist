@@ -36,6 +36,9 @@ public sealed class GeoEditorOptions
     /// <summary>
     /// Adds button to draw Circle
     /// </summary>
+    /// <remarks>
+    /// Circle is stored as a Geoman layer at runtime and exported as a polygon approximation in GeoJSON.
+    /// </remarks>
     public bool AllowCircle { get; set; } = true;
 
     /// <summary>
@@ -69,9 +72,9 @@ public sealed class GeoEditorOptions
     /// Enables Cutting of existing shapes
     /// </summary>
     /// <remarks>
-    /// <see href="https://geoman.io/docs/leaflet/modes/cut-mode" target="_blank"> Geoman Docs</see>: <br/> Enables
-    /// drawing for the shape "Cut" to draw a polygon that gets subtracted from all underlying polygons. <br/> This way
-    /// you can create holes, cut polygons or polylines in half or remove parts of it.
+    /// <see href="https://geoman.io/docs/leaflet/modes/cut-mode" target="_blank"> Geoman Docs</see>: <br/>
+    /// Enables drawing for the shape "Cut" to draw a polygon that gets subtracted from all underlying polygons. <br/>
+    /// This way you can create holes, cut polygons or polylines in half or remove parts of it.
     /// </remarks>
     public bool AllowCut { get; set; } = false;
 

@@ -27,12 +27,18 @@ public partial class Form1 : Form
 
     private readonly GeoEditorOptions _editorOptions = new()
     {
-        NodeColor = "#fa580c",
-        DragClickTolerance = 15,
         SnapSensitivity = 10,
-        NodeSize = 6,
-        UiScale = 1.0,
-        ActionsVertical = true,
+        NodeSize = 10,
+        DrawBorderColor = "black",
+        DrawBorderOpacity = 0.75,
+        DragClickTolerance = 10,
+        UiScale = 0.85,
+        ActionsScale = 0.9,
+        TooltipScale = 0.8,
+        AllowCircleMarker = true,
+        AllowText = true,
+        AllowCut = true,
+        AllowRotate = true,
         UseGeoJsonTextArea = true
     };
 
