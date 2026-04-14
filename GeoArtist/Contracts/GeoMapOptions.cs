@@ -68,7 +68,7 @@ public sealed class GeoMapOptions
     /// Enforced via <see cref="RangeAttribute"/>.
     /// </value>
     [Range(0, 24)]
-    public int? MaxZoom { get; set; } = 21;
+    public int? MaxZoom { get; set; } = 19;
 
     /// <summary>
     /// Enables automatic fitting of map bounds to loaded GeoJSON <br/>

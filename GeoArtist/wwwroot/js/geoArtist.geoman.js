@@ -2,15 +2,6 @@ window.GeoArtist = window.GeoArtist || {};
 
 window.GeoArtist.geoman = (function () {
     const events = window.GeoArtist.events;
-    const geomanDisableMethods = [
-        "disableGlobalDrawMode",
-        "disableGlobalEditMode",
-        "disableGlobalDragMode",
-        "disableGlobalRemovalMode",
-        "disableGlobalCutMode",
-        "disableGlobalRotateMode",
-        "removeControls"
-    ];
 
     function invokeIfFunction(target, methodName, args) {
         if (!target) {
@@ -284,6 +275,56 @@ window.GeoArtist.geoman = (function () {
         draggable.options.clickTolerance = originalTolerance;
     }
 
+    function detachPmEventHandlers(editorState) {
+        const map = editorState?.map;
+
+        if (!map || typeof map.off !== "function") {
+            return;
+        }
+
+        if (typeof editorState.pmCreateHandler === "function") {
+            map.off("pm:create", editorState.pmCreateHandler);
+        }
+
+        if (typeof editorState.pmEditHandler === "function") {
+            map.off("pm:edit", editorState.pmEditHandler);
+        }
+
+        if (typeof editorState.pmRemoveHandler === "function") {
+            map.off("pm:remove", editorState.pmRemoveHandler);
+        }
+
+        if (typeof editorState.pmCutHandler === "function") {
+            map.off("pm:cut", editorState.pmCutHandler);
+        }
+
+        editorState.pmCreateHandler = null;
+        editorState.pmEditHandler = null;
+        editorState.pmRemoveHandler = null;
+        editorState.pmCutHandler = null;
+    }
+
+    function disableActiveGlobalModes(mapPm) {
+        const modePairs = [
+            ["globalDrawModeEnabled", "disableGlobalDrawMode"],
+            ["globalEditModeEnabled", "disableGlobalEditMode"],
+            ["globalDragModeEnabled", "disableGlobalDragMode"],
+            ["globalRemovalModeEnabled", "disableGlobalRemovalMode"],
+            ["globalCutModeEnabled", "disableGlobalCutMode"],
+            ["globalRotateModeEnabled", "disableGlobalRotateMode"]
+        ];
+
+        modePairs.forEach(function (pair) {
+            const isEnabledMethod = pair[0];
+            const disableMethod = pair[1];
+            const isEnabled = invokeIfFunction(mapPm, isEnabledMethod);
+
+            if (isEnabled === true) {
+                invokeIfFunction(mapPm, disableMethod);
+            }
+        });
+    }
+
     function enableGeoman(editorState) {
         if (!editorState || !editorState.map) {
             return;
@@ -396,18 +437,20 @@ window.GeoArtist.geoman = (function () {
 
         const map = editorState.map;
 
-        if (!map.pm) {
+        detachPmEventHandlers(editorState);
+        clearNodeSize(editorState);
+        clearUiScale(editorState);
+        restoreDragClickTolerance(editorState);
+
+        if (!map.pm || editorState.geomanInitialized !== true) {
+            editorState.geomanInitialized = false;
             return;
         }
 
         try {
-            geomanDisableMethods.forEach(function (methodName) {
-                invokeIfFunction(map.pm, methodName);
-            });
-
-            clearNodeSize(editorState);
-            clearUiScale(editorState);
-            restoreDragClickTolerance(editorState);
+            disableActiveGlobalModes(map.pm);
+            invokeIfFunction(map.pm, "removeControls");
+            editorState.geomanInitialized = false;
         } catch (error) {
             console.error("GeoArtist.disableGeoman: failed to disable geoman controls.", error);
         }

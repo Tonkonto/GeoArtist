@@ -33,9 +33,16 @@ window.GeoArtist.mapRuntime = (function () {
         const tileLayerOptions = {
             attribution: options?.tileLayerAttribution
         };
+        const isOpenStreetMapTiles = typeof tileLayerUrl === "string"
+            && tileLayerUrl.indexOf("tile.openstreetmap.org") >= 0;
 
         if (maxZoom !== null) {
             tileLayerOptions.maxZoom = maxZoom;
+
+            // OpenStreetMap supports zoom level up to z19.
+            if (isOpenStreetMapTiles && maxZoom > 19) {
+                tileLayerOptions.maxNativeZoom = 19;
+            }
         }
 
         return {
