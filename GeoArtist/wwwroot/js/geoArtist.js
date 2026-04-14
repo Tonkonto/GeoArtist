@@ -45,6 +45,14 @@ window.GeoArtist.tryParseEditorText = function (text) {
     return window.GeoArtist.geoJson.tryParseEditorText(text);
 };
 
+window.GeoArtist.getCircleExportVertexCount = function () {
+    return window.GeoArtist.geoJson.getCircleExportVertexCount();
+};
+
+window.GeoArtist.setCircleExportVertexCount = function (count) {
+    return window.GeoArtist.geoJson.setCircleExportVertexCount(count);
+};
+
 window.GeoArtist.getMap = function (mapId) {
     return window.GeoArtist.state.getMap(mapId);
 };

@@ -1,6 +1,31 @@
 window.GeoArtist = window.GeoArtist || {};
 
 window.GeoArtist.geoJson = (function () {
+    // Data for exporting Leaflet Circle layers as GeoJSON Polygon
+    const Earth_Mean_Radius = 6371008.8; //Earth arithmetic mean radius
+    //number of vertices for circle to polygon approximation
+    let circleExportVertexCount = 60;   // default, the closing node will be added automatically
+
+    function getCircleExportVertexCount() {
+        return circleExportVertexCount;
+    }
+
+    function setCircleExportVertexCount(count) {
+        const minCircleExportVertexCount = 3;
+        const maxCircleExportVertexCount = 100000;
+
+        if (!Number.isFinite(count) || count < minCircleExportVertexCount || count > maxCircleExportVertexCount) {
+            console.warn(
+                `GeoArtist.setCircleExportVertexCount: expected integer in [${minCircleExportVertexCount}, ${maxCircleExportVertexCount}], got:`,
+                count
+            );
+            return false;
+        }
+
+        circleExportVertexCount = count;
+        return true;
+    }
+
     function invokeIfFunction(target, methodName, args) {
         if (!target) {
             return undefined;
@@ -13,6 +38,93 @@ window.GeoArtist.geoJson = (function () {
         }
 
         return method.apply(target, args ?? []);
+    }
+
+    function isLeafletGeographicCircle(layer) {
+        return typeof L !== "undefined" && layer instanceof L.Circle;
+    }
+
+    function offsetLatLngByMeters(latDeg, lngDeg, bearingDeg, distanceM) {
+        if (
+            typeof latDeg !== "number" || !Number.isFinite(latDeg) ||
+            typeof lngDeg !== "number" || !Number.isFinite(lngDeg) ||
+            typeof bearingDeg !== "number" || !Number.isFinite(bearingDeg) ||
+            typeof distanceM !== "number" || !Number.isFinite(distanceM)
+        ) {
+            return null;
+        }
+
+        const phi1 = latDeg * Math.PI / 180;
+        const lambda1 = lngDeg * Math.PI / 180;
+        const theta = bearingDeg * Math.PI / 180;
+        const angularDist = distanceM / Earth_Mean_Radius;
+
+        const sinPhi1 = Math.sin(phi1);
+        const cosPhi1 = Math.cos(phi1);
+        const sinAd = Math.sin(angularDist);
+        const cosAd = Math.cos(angularDist);
+
+        const sinPhi2 = sinPhi1 * cosAd + cosPhi1 * sinAd * Math.cos(theta);
+        const phi2 = Math.asin(sinPhi2);
+        const y = Math.sin(theta) * sinAd * cosPhi1;
+        const x = cosAd - sinPhi1 * sinPhi2;
+        let lambda2 = lambda1 + Math.atan2(y, x);
+
+        let lngOut = lambda2 * 180 / Math.PI;
+        lngOut = ((lngOut + 540) % 360) - 180;
+        const latOut = phi2 * 180 / Math.PI;
+
+        if (typeof latOut !== "number" || !Number.isFinite(latOut) ||
+            typeof lngOut !== "number" || !Number.isFinite(lngOut)) {
+            return null;
+        }
+
+        return { lat: latOut, lng: lngOut };
+    }
+
+    function circleLayerToPolygonFeature(layer) {
+        const latLng = invokeIfFunction(layer, "getLatLng");
+        const radius = invokeIfFunction(layer, "getRadius");
+
+        if (!latLng ||
+            typeof latLng.lat !== "number" || !Number.isFinite(latLng.lat) ||
+            typeof latLng.lng !== "number" || !Number.isFinite(latLng.lng) ||
+            typeof radius !== "number" || !Number.isFinite(radius) ||
+            radius <= 0) {
+            return null;
+        }
+
+        const ring = [];
+
+        for (let i = 0; i < circleExportVertexCount; i++) {
+            const bearing = (360 * i) / circleExportVertexCount;
+            const p = offsetLatLngByMeters(latLng.lat, latLng.lng, bearing, radius);
+
+            if (!p) {
+                return null;
+            }
+
+            ring.push([p.lng, p.lat]);
+        }
+
+        ring.push(ring[0]);
+
+        const props = { ...(layer.feature?.properties ?? {}) };
+
+        delete props.geoartistCircle;
+
+        props.shape = "Circle";
+        props.radius = radius;
+        props.center = [latLng.lng, latLng.lat];
+
+        return {
+            type: "Feature",
+            geometry: {
+                type: "Polygon",
+                coordinates: [ring]
+            },
+            properties: props
+        };
     }
 
     function normalizeGeoJsonInput(geoJson) {
@@ -163,6 +275,15 @@ window.GeoArtist.geoJson = (function () {
         }
 
         editorState.featureGroup.eachLayer(function (layer) {
+            if (isLeafletGeographicCircle(layer)) {
+                const circleFeature = circleLayerToPolygonFeature(layer);
+
+                if (circleFeature) {
+                    features.push(circleFeature);
+                    return;
+                }
+            }
+
             const geo = invokeIfFunction(layer, "toGeoJSON");
 
             if (!geo || typeof geo !== "object") {
@@ -203,6 +324,8 @@ window.GeoArtist.geoJson = (function () {
         toEditableJsonText,
         tryParseEditorText,
         preserveFeatureMetadata,
-        exportEditorGeoItems
+        exportEditorGeoItems,
+        getCircleExportVertexCount,
+        setCircleExportVertexCount
     };
 })();
