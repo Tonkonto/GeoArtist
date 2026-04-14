@@ -3,11 +3,11 @@ using System.ComponentModel.DataAnnotations;
 namespace GeoArtist.Contracts;
 
 /// <summary>
-/// Defines Geoman editor settings, available tools, edit modes, <br/>
-/// drawing behavior, UI scaling, GeoJSON textarea.
+/// Defines Geoman editor settings, available tools, edit modes, <br/> drawing behavior, UI scaling, GeoJSON textarea.
 /// </summary>
 /// <remarks>
-/// See <see href="https://geoman.io/docs/leaflet" target="_blank">Geoman Documentation</see> for detailed descriptions of the available tools, modes and options.
+/// See <see href="https://geoman.io/docs/leaflet" target="_blank"> Geoman Documentation</see> for detailed descriptions
+/// of the available tools, modes and options.
 /// </remarks>
 public sealed class GeoEditorOptions
 {
@@ -39,8 +39,7 @@ public sealed class GeoEditorOptions
     public bool AllowCircle { get; set; } = true;
 
     /// <summary>
-    /// Adds button to draw CircleMarkers <br/>
-    /// (a circle with a fixed scaled pixel radius)
+    /// Adds button to draw CircleMarkers <br/> (a circle with a fixed scaled pixel radius)
     /// </summary>
     /// <remarks>
     /// Geoman-only feature, not standard GeoJSON geometry.
@@ -70,9 +69,9 @@ public sealed class GeoEditorOptions
     /// Enables Cutting of existing shapes
     /// </summary>
     /// <remarks>
-    /// <see href="https://geoman.io/docs/leaflet/modes/cut-mode" target="_blank">Geoman Docs</see>: <br/>
-    /// Enables drawing for the shape "Cut" to draw a polygon that gets subtracted from all underlying polygons. <br/>
-    /// This way you can create holes, cut polygons or polylines in half or remove parts of it.
+    /// <see href="https://geoman.io/docs/leaflet/modes/cut-mode" target="_blank"> Geoman Docs</see>: <br/> Enables
+    /// drawing for the shape "Cut" to draw a polygon that gets subtracted from all underlying polygons. <br/> This way
+    /// you can create holes, cut polygons or polylines in half or remove parts of it.
     /// </remarks>
     public bool AllowCut { get; set; } = false;
 
@@ -92,18 +91,16 @@ public sealed class GeoEditorOptions
     /// Specifies Snap distance in pixels while drawing or editing
     /// </summary>
     /// <value>
-    /// Range: [0, 64] <br/>
-    /// Enforced via <see cref="RangeAttribute"/>.
+    /// Range: [0, 64] <br/> Enforced via <see cref="RangeAttribute"/>.
     /// </value>
     [Range(0, 64)]
     public int SnapSensitivity { get; set; } = 20;
 
     /// <summary>
-    /// Specifies Size in pixels for Vertex handlers (while drawing, editing)
+    /// Specifies Size in pixels for vertex handlers (while drawing, editing)
     /// </summary>
     /// <value>
-    /// Range: [0, 64] <br/>
-    /// Enforced via <see cref="RangeAttribute"/>.
+    /// Range: [0, 64] <br/> Enforced via <see cref="RangeAttribute"/>.
     /// </value>
     [Range(6, 64)]
     public int NodeSize { get; set; } = 14;
@@ -117,32 +114,47 @@ public sealed class GeoEditorOptions
     public string NodeColor { get; set; } = "#000";
 
     /// <summary>
-    /// Specifies drawing preview Color
+    /// Specifies drawing Border Color
     /// </summary>
     /// <value>
     /// CSS color
     /// </value>
-    public string DrawColor { get; set; } = "#0f766e";
+    public string DrawBorderColor { get; set; } = "#0f766e";
 
     /// <summary>
-    /// Opacity for drawing preview
+    /// Specifies for drawing Fill Color
     /// </summary>
     /// <value>
-    /// Range: [0.0, 1.0] <br/>
-    /// Enforced via <see cref="RangeAttribute"/>.
+    /// CSS color
     /// </value>
-    [Range(0.0, 1.0)]
-    public double DrawOpacity { get; set; } = 0.75;
+    public string DrawFillColor { get; set; } = "#0f766e";
 
     /// <summary>
-    /// Overrides Leaflet drag click tolerance in pixels.
+    /// Specifies Border Opacity for drawing preview.
+    /// </summary>
+    /// <value>
+    /// Range: [0.0, 1.0] <br/> Enforced via <see cref="RangeAttribute"/>.
+    /// </value>
+    [Range(0.0, 1.0)]
+    public double DrawBorderOpacity { get; set; } = 0.75;
+
+    /// <summary>
+    /// Specifies Fill Opacity for drawing preview.
+    /// </summary>
+    /// <value>
+    /// Range: [0.0, 1.0] <br/> Enforced via <see cref="RangeAttribute"/>.
+    /// </value>
+    [Range(0.0, 1.0)]
+    public double DrawFillOpacity { get; set; } = 0.45;
+
+    /// <summary>
+    /// Overrides map Drag click Tolerance in pixels
     /// </summary>
     /// <remarks>
     /// Higher values reduce sensitivity making speed drawing easier.
     /// </remarks>
     /// <value>
-    /// Range: [0, 64] <br/>
-    /// Enforced via <see cref="RangeAttribute"/>.
+    /// Range: [0, 64] <br/> Enforced via <see cref="RangeAttribute"/>.
     /// </value>
     [Range(0, 64)]
     public int DragClickTolerance { get; set; } = 3;
@@ -153,8 +165,7 @@ public sealed class GeoEditorOptions
     /// Global UI scale multiplier for geoman controls.
     /// </summary>
     /// <value>
-    /// Range: [0.4, 2.5] <br/>
-    /// Enforced via <see cref="RangeAttribute"/>.
+    /// Range: [0.4, 2.5] <br/> Enforced via <see cref="RangeAttribute"/>.
     /// </value>
     [Range(0.4, 2.5)]
     public double UiScale { get; set; } = 1.0;
@@ -163,8 +174,7 @@ public sealed class GeoEditorOptions
     /// Additional scale multiplier for the geoman Toolbar.
     /// </summary>
     /// <value>
-    /// Range: [0.4, 2.5] <br/>
-    /// Enforced via <see cref="RangeAttribute"/>.
+    /// Range: [0.4, 2.5] <br/> Enforced via <see cref="RangeAttribute"/>.
     /// </value>
     [Range(0.4, 2.5)]
     public double ToolbarScale { get; set; } = 1.0;
@@ -173,8 +183,7 @@ public sealed class GeoEditorOptions
     /// Additional scale multiplier for geoman Action menus.
     /// </summary>
     /// <value>
-    /// Range: [0, 64] <br/>
-    /// Enforced via <see cref="RangeAttribute"/>.
+    /// Range: [0, 64] <br/> Enforced via <see cref="RangeAttribute"/>.
     /// </value>
     [Range(0.4, 2.5)]
     public double ActionsScale { get; set; } = 1.0;
@@ -183,8 +192,7 @@ public sealed class GeoEditorOptions
     /// Additional scale multiplier for geoman Tooltips.
     /// </summary>
     /// <value>
-    /// Range: [0.4, 2.5] <br/>
-    /// Enforced via <see cref="RangeAttribute"/>.
+    /// Range: [0.4, 2.5] <br/> Enforced via <see cref="RangeAttribute"/>.
     /// </value>
     [Range(0.4, 2.5)]
     public double TooltipScale { get; set; } = 1.0;
@@ -199,16 +207,21 @@ public sealed class GeoEditorOptions
     /// <summary>
     /// Toggles Geoman Tools entirely
     /// </summary>
+    /// <remarks>
+    /// Affects GUI only. Doesn't disable editor, geoman runtime.
+    /// </remarks>
     public bool Enabled { get; set; } = true;
 
     /// <summary>
-    /// <see langword="True"/>: renders a GeoJSON textarea below the map and keeps it in sync if <see cref="AutoApplyJsonChanges"/> is <see langword="true"/>. <br/>
-    /// <see langword="False"/>: only the map UI is used; changes still surface via client events.
+    /// <see langword="True"/>: renders a GeoJSON textarea below the map and keeps it in sync if
+    /// <see cref="AutoApplyJsonChanges"/> is <see langword="true"/>. <br/> <see langword="False"/>: only the map UI is
+    /// used; changes still surface via client events.
     /// </summary>
     public bool UseGeoJsonTextArea { get; set; } = false;
 
     /// <summary>
-    /// Enables editing of GeoJSON textarea. Updates the map if <see cref="AutoApplyJsonChanges"/> is <see langword="true"/>.
+    /// Enables editing of GeoJSON textarea. Updates the map if <see cref="AutoApplyJsonChanges"/> is
+    /// <see langword="true"/>.
     /// </summary>
     public bool AllowJsonEditing { get; set; } = true;
 

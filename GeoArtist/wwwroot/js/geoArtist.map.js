@@ -196,15 +196,17 @@ window.GeoArtist.mapRuntime = (function () {
     }
 
     function buildGeoJsonLayer(item, options) {
-        const color = options.polygonColor ?? "red";
-        const opacity = options.polygonOpacity;
+        const borderColor = options.polygonBorderColor ?? "red";
+        const fillColor = options.polygonFillColor ?? borderColor;
+        const borderOpacity = options.polygonBorderOpacity;
+        const fillOpacity = options.polygonFillOpacity;
 
         return L.geoJSON(item, {
             style: {
-                color,
-                fillColor: color,
-                opacity,
-                fillOpacity: opacity
+                color: borderColor,
+                fillColor,
+                opacity: borderOpacity,
+                fillOpacity
             }
         });
     }

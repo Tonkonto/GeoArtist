@@ -22,52 +22,55 @@ window.GeoArtist.geoman = (function () {
     }
 
     function resolveNodeColor(editorOptions, mapOptions) {
-        return editorOptions?.nodeColor ?? editorOptions?.drawColor ?? mapOptions?.polygonColor ?? undefined;
+        return editorOptions?.nodeColor
+            ?? editorOptions?.drawBorderColor
+            ?? mapOptions?.polygonBorderColor
+            ?? undefined;
     }
 
     function resolveDrawStyle(editorOptions, mapOptions) {
-        const color = editorOptions?.drawColor ?? mapOptions?.polygonColor;
-        const opacity = editorOptions?.drawOpacity ?? mapOptions?.polygonOpacity;
+        const borderColor = editorOptions?.drawBorderColor ?? mapOptions?.polygonBorderColor;
+        const fillColor = editorOptions?.drawFillColor ?? mapOptions?.polygonFillColor ?? borderColor;
+        const borderOpacity = editorOptions?.drawBorderOpacity ?? mapOptions?.polygonBorderOpacity;
+        const fillOpacity = editorOptions?.drawFillOpacity ?? mapOptions?.polygonFillOpacity;
 
         return {
-            color,
-            opacity
+            borderColor,
+            fillColor,
+            borderOpacity,
+            fillOpacity
         };
     }
 
     function resolveMapStyle(mapOptions) {
         return {
-            color: mapOptions?.polygonColor,
-            opacity: mapOptions?.polygonOpacity
+            borderColor: mapOptions?.polygonBorderColor,
+            fillColor: mapOptions?.polygonFillColor,
+            borderOpacity: mapOptions?.polygonBorderOpacity,
+            fillOpacity: mapOptions?.polygonFillOpacity
         };
     }
 
-    function buildPathOptions(drawStyle) {
-        const color = drawStyle.color;
-        const opacity = drawStyle.opacity;
-
+    function buildPathOptions(style) {
         return {
-            color,
-            fillColor: color,
-            opacity,
-            fillOpacity: opacity
+            color: style.borderColor,
+            fillColor: style.fillColor,
+            opacity: style.borderOpacity,
+            fillOpacity: style.fillOpacity
         };
     }
 
     function buildDrawPreviewOptions(drawStyle) {
-        const color = drawStyle.color;
-        const opacity = drawStyle.opacity;
-
         return {
             templineStyle: {
-                color,
-                opacity,
-                fillColor: color,
-                fillOpacity: opacity
+                color: drawStyle.borderColor,
+                opacity: drawStyle.borderOpacity,
+                fillColor: drawStyle.fillColor,
+                fillOpacity: drawStyle.fillOpacity
             },
             hintlineStyle: {
-                color,
-                opacity,
+                color: drawStyle.borderColor,
+                opacity: drawStyle.borderOpacity,
                 dashArray: [5, 5]
             }
         };

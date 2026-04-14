@@ -27,8 +27,10 @@
         MapId = "demo-map",
         Height = "420px",
         MaxZoom = 21,
-        PolygonColor = "#2563eb",
-        PolygonOpacity = 0.45
+        PolygonBorderColor = "#2563eb",
+        PolygonFillColor = "#2563eb",
+        PolygonBorderOpacity = 0.5,
+        PolygonFillOpacity = 0.45
     };
 
     var editorMapOptions = new GeoArtist.Contracts.GeoMapOptions
@@ -36,14 +38,18 @@
         MapId = "demo-editor",
         Height = "420px",
         MaxZoom = 21,
-        PolygonColor = "#0f766e",
-        PolygonOpacity = 0.45
+        PolygonBorderColor = "#0f766e",
+        PolygonFillColor = "#0f766e",
+        PolygonBorderOpacity = 0.5,
+        PolygonFillOpacity = 0.45
     };
     var editorOptions = new GeoArtist.Contracts.GeoEditorOptions
     {
         SnapSensitivity = 10,
         NodeSize = 10,
-        DrawColor = "#e11d48",
+        DrawBorderColor = "#e11d68",
+        DrawFillColor = "#e11d68",
+        DrawBorderOpacity = 0.9,
         DragClickTolerance = 10,
         UiScale = 0.85,
         ActionsScale = 0.9,
@@ -81,11 +87,16 @@ document.querySelector(".js-map-demo-bar")?.addEventListener("click", function (
 
 window.UpdateGeoMapOptions = function () {
     window.GeoArtist.UpdateMapOptions({
-        polygonColor: window.randomHexColor(),
-        polygonOpacity: window.randomBetween(0.15, 1.0)
+        polygonBorderColor: window.randomHexColor(),
+        polygonFillColor: window.randomHexColor(),
+        polygonBorderOpacity: window.randomBetween(0.15, 1.0),
+        polygonFillOpacity: window.randomBetween(0.15, 1.0)
     });
     window.GeoArtist.UpdateEditorOptions({
-        drawColor: window.randomHexColor(),
+        drawBorderColor: window.randomHexColor(),
+        drawFillColor: window.randomHexColor(),
+        drawBorderOpacity: window.randomBetween(0.15, 1.0),
+        drawFillOpacity: window.randomBetween(0.15, 1.0),
         nodeSize: Math.floor(window.randomBetween(6, 24)),
         snapSensitivity: Math.floor(window.randomBetween(0, 64)),
         uiScale: window.randomBetween(0.5, 1.0),

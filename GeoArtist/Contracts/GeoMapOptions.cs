@@ -79,19 +79,34 @@ public sealed class GeoMapOptions
 
     // ===== Polygon customization =====
     /// <summary>
-    /// Specifies Fill Color for polygons
+    /// Specifies Border Color for polygons.
     /// </summary>
-    public string PolygonColor { get; set; } = "#3388ff";
+    public string PolygonBorderColor { get; set; } = "#3388ff";
 
     /// <summary>
-    /// Specifies fill opacity for polygons
+    /// Specifies Fill Color for polygons.
+    /// </summary>
+    public string PolygonFillColor { get; set; } = "#3388ff";
+
+    /// <summary>
+    /// Specifies Border Opacity for polygons.
     /// </summary>
     /// <value>
     /// Range: [0.0, 1.0] <br/>
     /// Enforced via <see cref="RangeAttribute"/>.
     /// </value>
     [Range(0.0, 1.0)]
-    public double PolygonOpacity { get; set; } = 0.5;
+    public double PolygonBorderOpacity { get; set; } = 0.5;
+
+    /// <summary>
+    /// Specifies Fill Opacity for polygons
+    /// </summary>
+    /// <value>
+    /// Range: [0.0, 1.0] <br/>
+    /// Enforced via <see cref="RangeAttribute"/>.
+    /// </value>
+    [Range(0.0, 1.0)]
+    public double PolygonFillOpacity { get; set; } = 0.5;
     // ===== /Polygon customization =====
 
     // ===== System settings =====
