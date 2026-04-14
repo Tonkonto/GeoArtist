@@ -25,8 +25,13 @@ window.GeoArtist.hostRuntime = (function () {
         invokeIfFunction(window.GeoArtist.editorRuntime, "disposeEditor", [mapId]);
     }
 
-    function clonePayload(payload) {
-        return JSON.parse(JSON.stringify(payload));
+    function clonePayload(payload, contextName) {
+        try {
+            return JSON.parse(JSON.stringify(payload));
+        } catch (error) {
+            console.error(`GeoArtist.${contextName}: payload cloning failed.`, error);
+            return null;
+        }
     }
 
     function shallowMerge(base, patch) {
@@ -139,20 +144,78 @@ window.GeoArtist.hostRuntime = (function () {
         }
     }
 
+    function syncEditorTextAreaFromLiveLayers(mapId, source) {
+        const editorState = window.GeoArtist.state.getEditor(mapId);
+        const useTextArea = (editorState?.editorOptions?.useGeoJsonTextArea) !== false;
+
+        if (!editorState || !useTextArea) {
+            return;
+        }
+
+        window.GeoArtist.editorRuntime.syncEditorOutputFromLayers(editorState, source);
+    }
+
+    function applyMapsUpdate(mapId, operationName, updater) {
+        const targets = resolveTargetMapIds(mapId);
+
+        if (!targets.length) {
+            console.warn(`GeoArtist.${operationName}: no managed map instances. Call GeoArtist.initialize first.`);
+            return;
+        }
+
+        for (const id of targets) {
+            const entry = getEntry(id);
+            if (!entry || !entry.lastPayload)
+                continue;
+
+            const next = clonePayload(entry.lastPayload, operationName);
+            if (!next)
+                continue;
+
+            const updateResult = updater(next, id, entry);
+            if (updateResult === false)
+                continue;
+
+            const applyResult = applyBootstrapPayload(next);
+            if (!applyResult) {
+                console.warn(`GeoArtist.${operationName}: applyBootstrapPayload failed for mapId "${id}".`);
+                continue;
+            }
+            const snapshot = clonePayload(next, operationName);
+            if (!snapshot)
+                continue;
+
+            entry.lastPayload = snapshot;
+
+            if (updateResult && typeof updateResult.afterApply === "function") {
+                updateResult.afterApply(id, next, entry);
+            }
+        }
+    }
+
     function initialize(payload) {
         if (!payload) {
             console.error("GeoArtist.initialize: payload is required.");
             return null;
         }
 
-        const working = clonePayload(payload);
+        const working = clonePayload(payload, "initialize");
+
+        if (!working) {
+            return null;
+        }
+
         const normalized = normalizePayload(working);
 
         if (!normalized) {
             return null;
         }
 
-        const snapshot = clonePayload(normalized);
+        const snapshot = clonePayload(normalized, "initialize");
+
+        if (!snapshot) {
+            return null;
+        }
         const mapId = snapshot.mapOptions.mapId;
         const mode = (snapshot.mode ?? "map").toLowerCase();
 
@@ -162,7 +225,13 @@ window.GeoArtist.hostRuntime = (function () {
             lastPayload: null
         });
         const result = applyBootstrapPayload(snapshot);
-        getEntry(mapId).lastPayload = clonePayload(snapshot);
+        const storedSnapshot = clonePayload(snapshot, "initialize");
+
+        if (!storedSnapshot) {
+            return null;
+        }
+
+        getEntry(mapId).lastPayload = storedSnapshot;
 
         return result;
     }
@@ -181,78 +250,53 @@ window.GeoArtist.hostRuntime = (function () {
         forgetInstance(mapId);
     }
 
-    function updateGeoJson(geoJson, mapId) {
-        const targets = resolveTargetMapIds(mapId);
+    function updateGeoJson(geoJson, options) {
+        const mapId = options?.mapId;
+        const source = options?.source;
 
-        if (!targets.length) {
-            console.warn("GeoArtist.updateGeoJson: no managed map instances. Call GeoArtist.initialize first.");
-            return;
-        }
-
-        for (const id of targets) {
-            const entry = getEntry(id);
-
-            if (!entry) {
-                continue;
-            }
-
-            const next = clonePayload(entry.lastPayload);
+        applyMapsUpdate(mapId, "updateGeoJson", function (next, id) {
             next.geoJson = geoJson;
-            applyBootstrapPayload(next);
-            entry.lastPayload = clonePayload(next);
-        }
+            return {
+                afterApply: function () {
+                    syncEditorTextAreaFromLiveLayers(id, source ?? "hostGeoJsonUpdate");
+                }
+            };
+        });
     }
 
     function updateMapOptions(mapOptions, mapId) {
-        const targets = resolveTargetMapIds(mapId);
-
-        if (!targets.length) {
-            console.warn("GeoArtist.updateMapOptions: no managed map instances. Call GeoArtist.initialize first.");
-            return;
-        }
-
-        for (const id of targets) {
-            const entry = getEntry(id);
-
-            if (!entry) {
-                continue;
-            }
-
-            const next = clonePayload(entry.lastPayload);
+        applyMapsUpdate(mapId, "updateMapOptions", function (next, id, entry) {
             hydrateGeoJsonPayload(next, id, entry);
             next.mapOptions = shallowMerge(next.mapOptions, mapOptions);
             next.mapOptions.mapId = id;
-            applyBootstrapPayload(next);
-            entry.lastPayload = clonePayload(next);
-        }
+            return true;
+        });
     }
 
     function updateEditorOptions(editorOptions, mapId) {
-        const targets = resolveTargetMapIds(mapId);
-
-        if (!targets.length) {
-            console.warn("GeoArtist.updateEditorOptions: no managed map instances. Call GeoArtist.initialize first.");
-            return;
-        }
-
-        for (const id of targets) {
-            const entry = getEntry(id);
-
-            if (!entry || entry.mode !== "editor") {
-                continue;
+        applyMapsUpdate(mapId, "updateEditorOptions", function (next, id, entry) {
+            if (entry.mode !== "editor") {
+                return false;
             }
 
-            const next = clonePayload(entry.lastPayload);
             hydrateGeoJsonPayload(next, id, entry);
             next.editorOptions = shallowMerge(next.editorOptions, editorOptions);
-            applyBootstrapPayload(next);
-            entry.lastPayload = clonePayload(next);
-        }
+            return true;
+        });
     }
 
     function updateHostOptions(mapOptions, editorOptions, mapId) {
-        updateMapOptions(mapOptions ?? {}, mapId);
-        updateEditorOptions(editorOptions ?? {}, mapId);
+        applyMapsUpdate(mapId, "updateHostOptions", function (next, id, entry) {
+            hydrateGeoJsonPayload(next, id, entry);
+            next.mapOptions = shallowMerge(next.mapOptions, mapOptions ?? {});
+            next.mapOptions.mapId = id;
+
+            if (entry.mode === "editor") {
+                next.editorOptions = shallowMerge(next.editorOptions, editorOptions ?? {});
+            }
+
+            return true;
+        });
     }
 
     function clearGeoJson(mapId) {
@@ -261,14 +305,7 @@ window.GeoArtist.hostRuntime = (function () {
             features: []
         };
 
-        updateGeoJson(empty, mapId);
-        const editorState = mapId ? window.GeoArtist.state.getEditor(mapId) : null;
-        const useTextArea = (editorState?.editorOptions?.useGeoJsonTextArea) !== false;
-        if (editorState && useTextArea)
-            window.GeoArtist.editorRuntime.syncEditorOutputFromLayers(editorState, "hostClear");
-        const entry = mapId ? getEntry(mapId) : null;
-        if (entry?.lastPayload)
-            entry.lastPayload.geoJson = clonePayload(empty);
+        updateGeoJson(empty, { mapId, source: "hostClear" });
     }
 
     function getManagedMapIds() {
