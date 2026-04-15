@@ -102,6 +102,30 @@ window.GeoArtist.mapRuntime = (function () {
         }
     }
 
+    function applyDoubleClickZoomOption(map, options) {
+        if (!map) {
+            return;
+        }
+
+        const isEnabled = options?.doubleClickZoom !== false;
+        const handler = map.doubleClickZoom;
+
+        if (!handler) {
+            return;
+        }
+
+        if (isEnabled) {
+            if (typeof handler.enable === "function") {
+                handler.enable();
+            }
+            return;
+        }
+
+        if (typeof handler.disable === "function") {
+            handler.disable();
+        }
+    }
+
     function resolveMapOptions(mapId, options) {
         const map = state.maps[mapId] ?? null;
         const previousOptions = map?.__geoArtistMapOptions ?? null;
@@ -163,17 +187,21 @@ window.GeoArtist.mapRuntime = (function () {
         if (state.maps[mapId]) {
             const existingMap = state.maps[mapId];
             applyMapZoomOptions(existingMap, resolvedOptions);
+            applyDoubleClickZoomOption(existingMap, resolvedOptions);
             syncTileLayer(existingMap, resolvedOptions);
             storeMapOptions(existingMap, resolvedOptions);
             return existingMap;
         }
 
-        const map = L.map(mapId).setView(
+        const map = L.map(mapId, {
+            doubleClickZoom: resolvedOptions.doubleClickZoom !== false
+        }).setView(
             [resolvedOptions.initialLat ?? 0.0, resolvedOptions.initialLng ?? 0.0],
             resolvedOptions.initialZoom ?? 12
         );
 
         applyMapZoomOptions(map, resolvedOptions);
+        applyDoubleClickZoomOption(map, resolvedOptions);
         syncTileLayer(map, resolvedOptions);
         storeMapOptions(map, resolvedOptions);
 
@@ -200,13 +228,37 @@ window.GeoArtist.mapRuntime = (function () {
         const fillColor = options.polygonFillColor ?? borderColor;
         const borderOpacity = options.polygonBorderOpacity;
         const fillOpacity = options.polygonFillOpacity;
+        const pathStyle = {
+            color: borderColor,
+            fillColor,
+            opacity: borderOpacity,
+            fillOpacity
+        };
 
         return L.geoJSON(item, {
-            style: {
-                color: borderColor,
-                fillColor,
-                opacity: borderOpacity,
-                fillOpacity
+            style: pathStyle,
+            pointToLayer: function (feature, latlng) {
+                const shape = feature?.properties?.shape;
+
+                if (typeof shape === "string" && shape.toLowerCase() === "circlemarker") {
+                    return L.circleMarker(latlng, pathStyle);
+                }
+
+                if (typeof shape === "string" && shape.toLowerCase() === "text") {
+                    const text = feature?.properties?.text ?? "";
+                    const textMarker = L.marker(latlng, {
+                        textMarker: true,
+                        text
+                    });
+
+                    if (textMarker?.pm && typeof textMarker.pm.setText === "function") {
+                        textMarker.pm.setText(text);
+                    }
+
+                    return textMarker;
+                }
+
+                return L.marker(latlng);
             }
         });
     }

@@ -45,7 +45,7 @@ public sealed class GeoEditorOptions
     /// Adds button to draw CircleMarkers <br/> (a circle with a fixed scaled pixel radius)
     /// </summary>
     /// <remarks>
-    /// Geoman-only feature, not standard GeoJSON geometry.
+    /// Geoman-only feature, not standard GeoJSON geometry (will be displayed as a marker feature).
     /// </remarks>
     public bool AllowCircleMarker { get; set; } = false;
 
@@ -53,7 +53,7 @@ public sealed class GeoEditorOptions
     /// Adds button to draw Text layers
     /// </summary>
     /// <remarks>
-    /// Geoman-only feature, not standard GeoJSON geometry.
+    /// Geoman-only feature, not standard GeoJSON geometry (will be displayed as a marker feature).
     /// </remarks>
     public bool AllowText { get; set; } = false;
 

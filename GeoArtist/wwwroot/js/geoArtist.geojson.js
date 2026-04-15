@@ -127,6 +127,49 @@ window.GeoArtist.geoJson = (function () {
         };
     }
 
+    function getLayerShape(layer) {
+        const shape = invokeIfFunction(layer?.pm, "getShape");
+
+        if (typeof shape === "string" && shape.length > 0) {
+            return shape;
+        }
+
+        const fallbackShape = layer?.feature?.properties?.shape;
+        if (typeof fallbackShape === "string" && fallbackShape.length > 0) {
+            return fallbackShape;
+        }
+
+        return null;
+    }
+
+    function enrichFeaturePropertiesByLayer(feature, layer) {
+        if (!feature || feature.type !== "Feature" || !layer) {
+            return feature;
+        }
+
+        const properties = {
+            ...(feature.properties ?? {})
+        };
+
+        const shape = getLayerShape(layer);
+        const shapeLower = typeof shape === "string" ? shape.toLowerCase() : "";
+
+        if (shapeLower === "circlemarker") {
+            properties.shape = "CircleMarker";
+        } else if (shapeLower === "text") {
+            properties.shape = "Text";
+            const textValue = layer?.options?.text;
+            if (typeof textValue === "string") {
+                properties.text = textValue;
+            } else if (typeof properties.text !== "string") {
+                properties.text = "";
+            }
+        }
+
+        feature.properties = properties;
+        return feature;
+    }
+
     function normalizeGeoJsonInput(geoJson) {
         if (!geoJson) {
             return [];
@@ -308,7 +351,7 @@ window.GeoArtist.geoJson = (function () {
                     };
                 }
 
-                features.push(geo);
+                features.push(enrichFeaturePropertiesByLayer(geo, layer));
             }
         });
 
@@ -325,6 +368,7 @@ window.GeoArtist.geoJson = (function () {
         tryParseEditorText,
         preserveFeatureMetadata,
         exportEditorGeoItems,
+        enrichFeaturePropertiesByLayer,
         getCircleExportVertexCount,
         setCircleExportVertexCount
     };

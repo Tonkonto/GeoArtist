@@ -93,6 +93,12 @@ public sealed class GeoMapTagHelper(IGeoArtist geoComponent, AspNetCoreGeoHtmlWr
     public bool? FitBounds { get; set; }
 
     /// <summary>
+    /// Optional double-click zoom override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("double-click-zoom")]
+    public bool? DoubleClickZoom { get; set; }
+
+    /// <summary>
     /// Optional polygon border color override for inline map options syntax.
     /// </summary>
     [HtmlAttributeName("polygon-border-color")]
@@ -237,6 +243,9 @@ public sealed class GeoMapTagHelper(IGeoArtist geoComponent, AspNetCoreGeoHtmlWr
 
         if (FitBounds.HasValue)
             options.FitBounds = FitBounds.Value;
+
+        if (DoubleClickZoom.HasValue)
+            options.DoubleClickZoom = DoubleClickZoom.Value;
 
         if (!string.IsNullOrWhiteSpace(PolygonBorderColor))
             options.PolygonBorderColor = PolygonBorderColor;

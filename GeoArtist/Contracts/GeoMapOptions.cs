@@ -75,6 +75,11 @@ public sealed class GeoMapOptions
     /// (auto focus on the loaded shape)
     /// </summary>
     public bool FitBounds { get; set; } = true;
+
+    /// <summary>
+    /// Enables zooming the map on double-click.
+    /// </summary>
+    public bool DoubleClickZoom { get; set; } = false;
     // ===== /Map behavior =====
 
     // ===== Polygon customization =====
