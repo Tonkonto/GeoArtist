@@ -149,7 +149,7 @@ window.GeoArtist.editorRuntime = (function () {
             geomanInitialized: false,
             inputHandler: null,
             pmCreateHandler: null,
-            pmEditHandler: null,
+            pmLayerGeometryHandler: null,
             pmRemoveHandler: null,
             pmCutHandler: null,
             syncFromLayers: null

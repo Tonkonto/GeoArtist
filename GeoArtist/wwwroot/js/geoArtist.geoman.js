@@ -17,6 +17,54 @@ window.GeoArtist.geoman = (function () {
         return method.apply(target, args ?? []);
     }
 
+    /**
+     * Where to listen for Geoman(v2) events:
+     * - pm:create is emitted on L.Map only.
+     * - pm:remove / pm:cut are emitted on the layer and duplicated onto the map (Geoman source).
+     * - pm:edit / pm:update are emitted on the layer; L.PM.Utils._fireEvent re-fires on parent LayerGroups, not on the map.
+     */
+    const pmBridgeBindings = [
+        {
+            resolveTarget: function (es) {
+                return es.map;
+            },
+            pairs: [
+                ["pm:create", "pmCreateHandler"],
+                ["pm:remove", "pmRemoveHandler"],
+                ["pm:cut", "pmCutHandler"]
+            ]
+        },
+        {
+            resolveTarget: function (es) {
+                return es.featureGroup;
+            },
+            pairs: [
+                ["pm:edit", "pmLayerGeometryHandler"],
+                ["pm:update", "pmLayerGeometryHandler"]
+            ]
+        }
+    ];
+
+    function setPmBridgeListeners(editorState, onOrOff) {
+        pmBridgeBindings.forEach(function (group) {
+            const target = group.resolveTarget(editorState);
+
+            if (!target || typeof target[onOrOff] !== "function") {
+                return;
+            }
+
+            group.pairs.forEach(function (pair) {
+                const type = pair[0];
+                const handlerKey = pair[1];
+                const handler = editorState[handlerKey];
+
+                if (typeof handler === "function") {
+                    target[onOrOff](type, handler);
+                }
+            });
+        });
+    }
+
     function resolveNodeSize(editorOptions) {
         return editorOptions.nodeSize;
     }
@@ -279,30 +327,14 @@ window.GeoArtist.geoman = (function () {
     }
 
     function detachPmEventHandlers(editorState) {
-        const map = editorState?.map;
-
-        if (!map || typeof map.off !== "function") {
+        if (!editorState) {
             return;
         }
 
-        if (typeof editorState.pmCreateHandler === "function") {
-            map.off("pm:create", editorState.pmCreateHandler);
-        }
-
-        if (typeof editorState.pmEditHandler === "function") {
-            map.off("pm:edit", editorState.pmEditHandler);
-        }
-
-        if (typeof editorState.pmRemoveHandler === "function") {
-            map.off("pm:remove", editorState.pmRemoveHandler);
-        }
-
-        if (typeof editorState.pmCutHandler === "function") {
-            map.off("pm:cut", editorState.pmCutHandler);
-        }
+        setPmBridgeListeners(editorState, "off");
 
         editorState.pmCreateHandler = null;
-        editorState.pmEditHandler = null;
+        editorState.pmLayerGeometryHandler = null;
         editorState.pmRemoveHandler = null;
         editorState.pmCutHandler = null;
     }
@@ -401,9 +433,9 @@ window.GeoArtist.geoman = (function () {
             });
         };
 
-        editorState.pmEditHandler = function () {
+        editorState.pmLayerGeometryHandler = function (e) {
             applyMapStyleToEditorLayers(editorState, mapPathOptions);
-            editorState.syncFromLayers("edit");
+            editorState.syncFromLayers(e?.type ?? "edit");
 
             events.emit("geoartist:featureUpdated", {
                 mapId: editorState.mapId,
@@ -425,10 +457,7 @@ window.GeoArtist.geoman = (function () {
             editorState.syncFromLayers("cut");
         };
 
-        map.on("pm:create", editorState.pmCreateHandler);
-        map.on("pm:edit", editorState.pmEditHandler);
-        map.on("pm:remove", editorState.pmRemoveHandler);
-        map.on("pm:cut", editorState.pmCutHandler);
+        setPmBridgeListeners(editorState, "on");
 
         editorState.geomanInitialized = true;
     }
