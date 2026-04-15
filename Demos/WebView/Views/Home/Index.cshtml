@@ -22,17 +22,6 @@
 </div>
 
 @{
-    var mapOptions = new GeoArtist.Contracts.GeoMapOptions
-    {
-        MapId = "demo-map",
-        Height = "420px",
-        MaxZoom = 21,
-        PolygonBorderColor = "#2563eb",
-        PolygonFillColor = "#2563eb",
-        PolygonBorderOpacity = 0.5,
-        PolygonFillOpacity = 0.45
-    };
-
     var editorMapOptions = new GeoArtist.Contracts.GeoMapOptions
     {
         MapId = "demo-editor",
@@ -65,7 +54,15 @@
 <div class="row g-3">
     <div class="col-xl-6">
         <h4>Map Mode</h4>
-        <geo-map geo-json="@Model.GeoJson" map-options="@mapOptions" include-assets="false" />
+        <geo-map geo-json="@Model.GeoJson"
+                 map-id="demo-map"
+                 height="420px"
+                 max-zoom="21"
+                 polygon-border-color="#2563eb"
+                 polygon-fill-color="#2563eb"
+                 polygon-border-opacity="0.5"
+                 polygon-fill-opacity="0.45"
+                 include-assets="false" />  <!-- since app's using editor mode, false here, true – for editor mode only (see readme) -->
     </div>
 
     <div class="col-xl-6">

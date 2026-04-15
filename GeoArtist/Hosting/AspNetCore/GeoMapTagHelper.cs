@@ -50,6 +50,90 @@ public sealed class GeoMapTagHelper(IGeoArtist geoComponent, AspNetCoreGeoHtmlWr
     [HtmlAttributeName("map-options")]
     public GeoMapOptions? MapOptions { get; set; }
 
+    /// <summary>
+    /// Optional map id override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("map-id")]
+    public string? MapId { get; set; }
+
+    /// <summary>
+    /// Optional map container height override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("height")]
+    public string? Height { get; set; }
+
+    /// <summary>
+    /// Optional initial longitude override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("initial-lng")]
+    public double? InitialLng { get; set; }
+
+    /// <summary>
+    /// Optional initial latitude override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("initial-lat")]
+    public double? InitialLat { get; set; }
+
+    /// <summary>
+    /// Optional initial zoom override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("initial-zoom")]
+    public int? InitialZoom { get; set; }
+
+    /// <summary>
+    /// Optional max zoom override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("max-zoom")]
+    public int? MaxZoom { get; set; }
+
+    /// <summary>
+    /// Optional fit-bounds override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("fit-bounds")]
+    public bool? FitBounds { get; set; }
+
+    /// <summary>
+    /// Optional polygon border color override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("polygon-border-color")]
+    public string? PolygonBorderColor { get; set; }
+
+    /// <summary>
+    /// Optional polygon fill color override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("polygon-fill-color")]
+    public string? PolygonFillColor { get; set; }
+
+    /// <summary>
+    /// Optional polygon border opacity override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("polygon-border-opacity")]
+    public double? PolygonBorderOpacity { get; set; }
+
+    /// <summary>
+    /// Optional polygon fill opacity override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("polygon-fill-opacity")]
+    public double? PolygonFillOpacity { get; set; }
+
+    /// <summary>
+    /// Optional tile layer visibility override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("show-tile-layer")]
+    public bool? ShowTileLayer { get; set; }
+
+    /// <summary>
+    /// Optional tile layer URL override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("tile-layer-url")]
+    public string? TileLayerUrl { get; set; }
+
+    /// <summary>
+    /// Optional source SRID override for inline map options syntax.
+    /// </summary>
+    [HtmlAttributeName("source-srid")]
+    public int? SourceSrid { get; set; }
+
 
     /// <summary>
     /// Specifies the editor configuration options.
@@ -116,14 +200,65 @@ public sealed class GeoMapTagHelper(IGeoArtist geoComponent, AspNetCoreGeoHtmlWr
     /// <param name="output">TagHelper output.</param>
     public override void Process(TagHelperContext context, TagHelperOutput output)
     {
+        var resolvedMapOptions = ResolveMapOptions();
+
         GeoRenderResult renderResult = string.Equals(Mode, "editor", StringComparison.OrdinalIgnoreCase)
-            ? _geoComponent.RenderEditor(GeoJson, MapOptions, EditorOptions)
-            : _geoComponent.RenderMap(GeoJson, MapOptions);
+            ? _geoComponent.RenderEditor(GeoJson, resolvedMapOptions, EditorOptions)
+            : _geoComponent.RenderMap(GeoJson, resolvedMapOptions);
 
         var htmlContent = _htmlWriter.BuildHtmlContent(renderResult, IncludeAssets);
 
         output.TagName = null;
         output.Content.SetHtmlContent(htmlContent);
+    }
+
+    private GeoMapOptions ResolveMapOptions()
+    {
+        var options = MapOptions ?? new GeoMapOptions();
+
+        if (!string.IsNullOrWhiteSpace(MapId))
+            options.MapId = MapId;
+
+        if (!string.IsNullOrWhiteSpace(Height))
+            options.Height = Height;
+
+        if (InitialLat.HasValue)
+            options.InitialLat = InitialLat.Value;
+
+        if (InitialLng.HasValue)
+            options.InitialLng = InitialLng.Value;
+
+        if (InitialZoom.HasValue)
+            options.InitialZoom = InitialZoom.Value;
+
+        if (MaxZoom.HasValue)
+            options.MaxZoom = MaxZoom.Value;
+
+        if (FitBounds.HasValue)
+            options.FitBounds = FitBounds.Value;
+
+        if (!string.IsNullOrWhiteSpace(PolygonBorderColor))
+            options.PolygonBorderColor = PolygonBorderColor;
+
+        if (!string.IsNullOrWhiteSpace(PolygonFillColor))
+            options.PolygonFillColor = PolygonFillColor;
+
+        if (PolygonBorderOpacity.HasValue)
+            options.PolygonBorderOpacity = PolygonBorderOpacity.Value;
+
+        if (PolygonFillOpacity.HasValue)
+            options.PolygonFillOpacity = PolygonFillOpacity.Value;
+
+        if (ShowTileLayer.HasValue)
+            options.ShowTileLayer = ShowTileLayer.Value;
+
+        if (!string.IsNullOrWhiteSpace(TileLayerUrl))
+            options.TileLayerUrl = TileLayerUrl;
+
+        if (SourceSrid.HasValue)
+            options.SourceSrid = SourceSrid.Value;
+
+        return options;
     }
 }
 
