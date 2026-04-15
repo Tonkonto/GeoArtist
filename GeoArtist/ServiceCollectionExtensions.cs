@@ -65,6 +65,8 @@ public static class ServiceCollectionExtensions
     // ===== Internal Funcs =====
     private static IServiceCollection AddGeoArtistCore(IServiceCollection services)
     {
+        services.AddHttpContextAccessor();
+
         services.AddSingleton<IGeometryTransformService, GeometryTransformService>();
         services.AddSingleton<GeoJsonValidationService>();
         services.AddSingleton<IGeoDataSerializer, SystemTextJsonGeoDataSerializer>();

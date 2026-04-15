@@ -1,39 +1,64 @@
 # GeoArtist
 
-GeoArtist is a reusable geo-rendering component for .NET with two hosting adapters:
-- ASP.NET Core (TagHelper / ViewComponent)
-- Desktop WinForms (WebView2 demo host)
+A lightweight .NET component for rendering and editing **GeoJSON** on an **OpenStreetMap** map using **Leaflet**.
 
-The rendering/editor runtime lives inside `GeoArtist`. Demo apps are thin hosts.
+The project is built as a **plug'n'play component** with out-of-the-box support for:
+- ASP.NET Core (`TagHelper` / `ViewComponent`)
+- WinForms Desktop (`WebView2`)
 
-## Solution Layout
+The repository contains:
 
-- `GeoArtist`
-  - Core contracts and services
-  - GeoJSON normalization and validation
-  - SRID -> WGS84 transformation pipeline
-  - HTML/script rendering bridge
-  - ASP.NET Core + Desktop hosting adapters
-  - Static assets (`geoArtist.*`)
-- `Demos/WebView`
-  - ASP.NET Core demo host
-  - API endpoints for GeoJSON/WKT normalization samples
-- `Desktop`
-  - WinForms + WebView2 demo host
+| Project | Description |
+|-------|-------------|
+| **GeoArtist** | Production module. Validation, normalization, transformation, rendering |
+| **Demos/WebView** | ASP.NET Core demo host |
+| **Demos/Desktop** | WinForms + WebView2 demo host |
 
-## Current Component Capabilities
+#
+ 
 
-- Map mode and editor mode via unified payload (`mode: map|editor`)
-- GeoJSON input normalization to `FeatureCollection`
-- Optional SRID conversion (via `GeoMapOptions.SourceSrid`)
-- Editor text/map synchronization
-- Leaflet-Geoman integration for draw/edit/delete in editor mode
-- Event stream (`geoartist:ready`, `geoartist:geojsonChanged`, etc.)
+# Features
+- ASP.NET Core `TagHelper` and `ViewComponent`
+- WinForms WebView2 adapter
+- Map mode and editor mode
+- GeoJSON normalization to `FeatureCollection`
+- Optional SRID transformation support
+- Leaflet + OpenStreetMap rendering
+- Leaflet-Geoman editor integration
+- Dynamic runtime updates from JavaScript API
 
-## Installation (ASP.NET Core)
+#
+ 
 
-1. Add project/package reference to `GeoArtist`.
-2. Register services:
+# Project Structure
+- GeoArtist
+    - Abstractions
+    - Contracts
+    - Core
+    - Hosting
+    - Rendering
+    - wwwroot
+ 
+- Demos
+    - WebView
+    - Desktop
+
+#
+ 
+
+# Installation (ASP.NET Core)
+
+Add **GeoArtist** to your ASP.NET Core application.
+
+### 1. Add project/package reference
+
+```csharp
+<ProjectReference Include="..\GeoArtist\GeoArtist.csproj" />
+```
+
+### 2. Register services
+
+`Program.cs`
 
 ```csharp
 using GeoArtist;
@@ -62,12 +87,9 @@ builder.Services.AddGeoArtist();
     map-options="@mapOptions"
     include-assets="true" />
 
-<geo-map
-    geo-json='{"type":"FeatureCollection","features":[]}'
-    map-options="@mapOptions"
-    editor-options="@editorOptions"
-    mode="editor"
-    include-assets="false" />
+<geo-map geo-json="@Model.GeoJson" map-options="@mapOptions" include-assets="true" />
+
+<geo-map geo-json="@Model.GeoJson" map-options="@mapOptions" editor-options="@editorOptions" mode="editor" include-assets="true" />
 ```
 
 ## Asset Strategy
@@ -77,9 +99,15 @@ Default asset set is configured in `GeoArtistAssetOptions`:
 - GeoArtist CSS/JS (static web assets)
 - Leaflet-Geoman CSS/JS for editor mode (CDN)
 
-If you have multiple components on one page, include assets once (`include-assets="true"`) and disable for subsequent instances (`include-assets="false"`).
 
-## Desktop Demo
+#
+ 
+
+# Desktop Hosting
+Desktop host uses:
+- `GeoDesktopWebViewAdapter`
+- `WebViewHostBridge`
+
 
 `Desktop` project uses `GeoDesktopWebViewAdapter` + `WebViewHostBridge` from `GeoArtist.Hosting.Desktop`.
 No adapter file copy is required in host apps that reference `GeoArtist`.

@@ -188,6 +188,7 @@ public sealed class GeoMapTagHelper(IGeoArtist geoComponent, AspNetCoreGeoHtmlWr
     /// </summary>
     /// <remarks>
     /// Set to <c>false</c> when assets are already included globally, for example in a layout.
+    /// When <c>true</c> on several components in the same request, each distinct asset URL is still emitted only once.
     /// </remarks>
     [HtmlAttributeName("include-assets")]
     public bool IncludeAssets { get; set; } = true;
