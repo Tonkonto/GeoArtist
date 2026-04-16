@@ -3,6 +3,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.0.1] - 2026-04-16
+
+### Changed
+- Centralized docs reverted
+
+
 ## [2.0.0] - 2026-04
 
 ### Added
@@ -15,7 +21,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Asset configuration model `GeoArtistAssetOptions` with automatic mode-based Leaflet/Geoman asset inclusion and ordering.
 - Multi-targeting support for `net8.0` and `net8.0-windows` with platform-specific WebView2 references.
 - Open-source project assets including `LICENSE.md`, `CONTRIBUTING.md`, and GitHub `issue`/`PR` templates.
-
 
 ### Changed
 - Project renamed from `GeoComponent` to `GeoArtist` including all namespaces and DI registration methods.
