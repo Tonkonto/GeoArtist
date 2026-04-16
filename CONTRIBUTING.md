@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for your interest in GeoArtist. This repository ships a reusable GeoJSON map and editor component for .NET (`GeoArtist`) plus demo hosts.
+This repository ships a reusable GeoJSON map and editor component for .NET (`GeoArtist`) plus demo hosts.
 
 ## Getting started
 

@@ -40,4 +40,3 @@ If the issue depends on GeoJSON or options, attach a minimal sample (redact secr
 ## Additional context
 
 Anything else that helps narrow the issue down.
-
