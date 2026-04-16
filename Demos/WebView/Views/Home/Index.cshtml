@@ -1,0 +1,201 @@
+@model WebView.Models.Home.HomeMapDemoViewModel
+@using GeoArtist.Contracts
+
+@{
+    ViewData["Title"] = "GeoArtist Demo";
+}
+
+<h2 class="mb-3">GeoArtist Demo</h2>
+
+<div class="d-flex gap-2 flex-wrap mb-3 js-map-demo-bar">
+    <button type="button" class="btn btn-sm btn-outline-primary js-client-rectangle-btn">Draw from Client</button>
+    <button type="button" class="btn btn-sm btn-outline-primary" data-src="@Url.Action("DemoGeoJsonSingle", "Home")">GET /Home/DemoGeoJsonSingle</button>
+    <button type="button" class="btn btn-sm btn-outline-primary" data-src="@Url.Action("DemoGeoJsonBatch", "Home")">GET /Home/DemoGeoJsonBatch</button>
+    <button type="button" class="btn btn-sm btn-outline-info" data-src="@Url.Action("DemoWktSingle", "Home")">GET /Home/DemoWktSingle</button>
+    <button type="button" class="btn btn-sm btn-outline-info" data-src="@Url.Action("DemoWktBatch", "Home")">GET /Home/DemoWktBatch</button>
+</div>
+
+<p class="mb-2">Helpers tools</p>
+<div class="d-flex gap-2 flex-wrap mb-3 js-showcase-bar">
+    <button type="button" class="btn btn-sm btn-outline-primary js-randomize-options-btn">UpdateGeoMapOptions()</button>
+    <button type="button" class="btn btn-sm btn-outline-primary js-clear-geojson-btn">ClearGeoJson()</button>
+    <button type="button" class="btn btn-sm btn-outline-primary js-download-geojson" data-editor-map-id="demo-editor">Download GeoJSON (layers)</button>
+</div>
+
+@{
+    var editorMapOptions = new GeoMapOptions
+    {
+        MapId = "demo-editor",
+        Height = "420px",
+        MaxZoom = 21,
+        PolygonBorderColor = "#0f766e",
+        PolygonFillColor = "#0f766e",
+        PolygonBorderOpacity = 0.5,
+        PolygonFillOpacity = 0.45
+    };
+    var editorOptions = new GeoEditorOptions
+    {
+        SnapSensitivity = 10,
+        NodeSize = 10,
+        DrawBorderColor = "#e11d68",
+        DrawFillColor = "#e11d68",
+        DrawBorderOpacity = 0.9,
+        DragClickTolerance = 10,
+        UiScale = 0.85,
+        ActionsScale = 0.9,
+        TooltipScale = 0.8,
+        AllowCircleMarker = true,
+        AllowText = true,
+        AllowCut = true,
+        AllowRotate = true,
+        UseGeoJsonTextArea = true
+    };
+}
+
+<div class="row g-3">
+    <div class="col-xl-6">
+        <h4>Map Mode</h4>
+        <geo-map geo-json="@Model.GeoJson"
+                 map-id="demo-map"
+                 height="420px"
+                 max-zoom="21"
+                 polygon-border-color="#2563eb"
+                 polygon-fill-color="#2563eb"
+                 polygon-border-opacity="0.5"
+                 polygon-fill-opacity="0.45"
+                 include-assets="false" />  <!-- since app's using editor mode - false here, true for editor mode only (see readme) -->
+    </div>
+
+    <div class="col-xl-6">
+        <h4>Editor Mode</h4>
+        <geo-map geo-json="@Model.GeoJson" map-options="@editorMapOptions" editor-options="@editorOptions" mode="editor" include-assets="true" />
+    </div>
+</div>
+
+@section Scripts {
+<script>
+// Server returns GeoJSON, client applies it via GeoArtist.UpdateGeoJson.
+document.querySelector(".js-map-demo-bar")?.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-src]");
+    if (!b) return;
+    fetch(b.dataset.src)
+        .then(function (r) { return r.json(); })
+        .then(function (geoJson) { window.GeoArtist.UpdateGeoJson(geoJson); });
+});
+
+// This block keeps "Map mode" map in sync with "Editor mode" map. Approximate pipeline:
+// - Host listens for document CustomEvent "geoartist:geojsonChanged" (detail: mapId, source, geoJson).
+// - Emitter: GeoArtist.events.emit from editorRuntime (not intended as a public contract).
+// - Consumer: window.GeoArtist.UpdateGeoJson -> ... ->  mapRuntime.renderMapFromPayload. Reuses same bootstrap path as server HTML.
+(function () {
+    var editorMapId = "demo-editor";
+    var mirrorMapId = "demo-map";
+
+    document.addEventListener("geoartist:geojsonChanged", function (ev) {
+        var d = ev && ev.detail;
+        if (!d || d.mapId !== editorMapId || !d.geoJson)
+            return;
+        window.GeoArtist.UpdateGeoJson(d.geoJson, { mapId: mirrorMapId, source: "webViewDemoMirrorEditor" });
+    });
+})();
+
+window.ClearGeoJson = function () {
+    window.GeoArtist.ClearGeoJson();
+};
+
+document.querySelector(".js-client-rectangle-btn")?.addEventListener("click", function () {
+    var geoJs = {
+        type: "FeatureCollection",
+        features: [{
+            type: "Feature",
+            properties: { source: "browser", name: "Client rectangle" },
+            geometry: {
+                type: "Polygon",
+                coordinates: [[
+                    [74.58, 42.86],
+                    [74.59, 42.86],
+                    [74.59, 42.87],
+                    [74.58, 42.87],
+                    [74.58, 42.86]
+                ]]
+            }
+        }]
+    };
+    window.GeoArtist.UpdateGeoJson(geoJs);
+});
+
+document.querySelector(".js-showcase-bar")?.addEventListener("click", function (e) {
+    var dl = e.target.closest(".js-download-geojson");
+    if (dl) {
+        var mapId = dl.dataset.editorMapId || "demo-editor";
+        var gj = window.GeoArtist.exportDisplayedGeoJson(mapId);
+        if (!gj) {
+            console.warn("GeoArtist.exportDisplayedGeoJson: nothing to export for", mapId);
+            return;
+        }
+        var blob = new Blob([JSON.stringify(gj, null, 2)], { type: "application/geo+json" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = mapId + "-" + "geoJson.json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+        return;
+    }
+    if (e.target.closest(".js-clear-geojson-btn")) {
+        window.ClearGeoJson();
+    }
+});
+
+// === Helpers ===
+window.randomHexColor = function () {
+    return "#" + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
+};
+
+window.randomBetween = function (min, max) {
+    return min + Math.random() * (max - min);
+};
+
+// This block updates map and editor options with random values by button
+// - Separate UpdateMapOptions calls per map container id (demo-map vs demo-editor).
+// - UpdateEditorOptions scoped to demo-editor (editor mode only).
+(function () {
+    var mapModeId = "demo-map";
+    var editorModeId = "demo-editor";
+
+    function applyRandomOptions() {
+        //mapOpts for map-mode
+        window.GeoArtist.UpdateMapOptions({
+            polygonBorderColor: window.randomHexColor(),
+            polygonFillColor: window.randomHexColor(),
+            polygonBorderOpacity: window.randomBetween(0.15, 1.0),
+            polygonFillOpacity: window.randomBetween(0.1, 1.0)
+        }, "demo-map");
+        //mapOpts for editor-mode
+        window.GeoArtist.UpdateMapOptions({
+            polygonBorderColor: window.randomHexColor(),
+            polygonFillColor: window.randomHexColor(),
+            polygonBorderOpacity: window.randomBetween(0.15, 1.0),
+            polygonFillOpacity: window.randomBetween(0.1, 1.0)
+        }, "demo-editor");
+        //editorOpts for editor-mode
+        window.GeoArtist.UpdateEditorOptions({
+            drawBorderColor: window.randomHexColor(),
+            drawFillColor: window.randomHexColor(),
+            drawBorderOpacity: window.randomBetween(0.15, 1.0),
+            drawFillOpacity: window.randomBetween(0.15, 1.0),
+            nodeSize: Math.floor(window.randomBetween(6, 24)),
+            snapSensitivity: Math.floor(window.randomBetween(0, 64)),
+            uiScale: window.randomBetween(0.5, 1.0),
+            useGeoJsonTextArea: true,
+            autoApplyJsonChanges: true
+        }, "demo-editor");
+    }
+
+    window.UpdateGeoMapOptions = applyRandomOptions;
+
+    document.querySelector(".js-randomize-options-btn")?.addEventListener("click", function () {
+        applyRandomOptions();
+    });
+})();
+</script>
+}

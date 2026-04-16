@@ -1,251 +1,279 @@
 # GeoArtist
+A self-contained .NET component for rendering and editing **GeoJSON** on an **OpenStreetMap** map using **Leaflet**.
 
-A lightweight ASP.NET Core module for rendering **geometric shapes (GeoJSON / WKT)** on an **OpenStreetMap** map using **Leaflet**.
+The project is designed as a plug&play component with out-of-the-box support for:
+- ASP.NET Core (`TagHelper` / `ViewComponent`)
+- WinForms Desktop (`WebView2`)
+ 
 
-The project is designed as a **plug'n'play component** that can be embedded into other ASP.NET Core applications.
+## Table of Contents
+- [Repository contents](#repository-contents)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Installation for ASP.NET Core](#installation-for-aspnet-core)
+- [Asset Loading](#asset-loading)
+- [Map and editor modes](#map-and-editor-modes)
+- [GeoMapOptions](#geomapoptions)
+- [GeoEditorOptions](#geoeditoroptions)
+- [JavaScript Runtime API](#javascript-runtime-api)
+- [Desktop Hosting](#desktop-hosting)
+  - [Installation](#installation)
+  - [Asset management & build workflow](#asset-management--build-workflow)
+- [Used Frameworks and Libraries](#used-frameworks-and-libraries)
 
-The repository contains:
+#
 
+# Repository contents
 | Project | Description |
 |-------|-------------|
-| **GeoComponent** | Production-ready module. Geometry parsing, transformation, map rendering |
-| **WebView** | Demo / test host for demonstration and testing |
+| **GeoArtist** | Production library: server-side GeoJSON handling, HTML/bootstrap rendering, modular JS runtime (Leaflet, Geoman) |
+| **Demos/WebView** | ASP.NET Core demo host |
+| **Demos/Desktop** | WinForms + WebView2 demo host |
 
 #
- 
+ 
 
 # Features
-- ASP.NET Core **Razor ViewComponent**
-- Render **Polygon**, **MultiPolygon**
-- Accept **GeoJSON**, **WKT**
-- Batch processing
+- ASP.NET Core `TagHelper` and `ViewComponent`
+- WinForms WebView2 adapter
+- Shapes displaying and editing modes
+- GeoJSON normalization to `FeatureCollection`
 - SRID transformation support
 - Leaflet + OpenStreetMap rendering
-- Dynamic map update
+- Geoman integration
+- Dynamic runtime updates from JavaScript API
 
 #
- 
+ 
 
 # Project Structure
 - GeoArtist
-    - GeoComponent               ← Production module)
-        - Core                          ← Geometry parsing & transformations
-         - Facade                       ← Host integration API
-         - Models                      ← DTO, Map contracts
-         - ViewComponents      ← Razor map component
-         - Views                         ← Component view
-         - wwwroot                    ← Leaflet integration
+    - Abstractions
+    - Contracts
+    - Core
+    - Hosting
+    - Rendering
+    - wwwroot
  
-     - WebView                           ← Demo / test host
-          - Controllers
-          - Middleware
-          - Models
-          - Views
-          - wwwroot
-
+- Demos
+    - WebView
+    - Desktop
 
 #
- 
+ 
 
-# Installation
+# Installation for ASP.NET Core
 
-Add **GeoComponent** to your ASP.NET Core application.
-
-### 1. Add project reference
-
-```csharp
-<ProjectReference Include="..\GeoComponent\GeoComponent.csproj" />
+### 1. Add the component to your application as a project reference
+```html
+<ProjectReference Include="..\GeoArtist\GeoArtist.csproj" />
 ```
 
-
 ### 2. Register services
-
 `Program.cs`
 
 ```csharp
-using GeoComponent;
-...
-builder.Services.AddGeoComponent();
+using GeoArtist;
+
+builder.Services.AddGeoArtist();
 ```
 
-### 3. Add required resources to Layout
+### 3. Add TagHelper import if you want to use the component as html tag
+```cshtml
+@addTagHelper *, GeoArtist
+```
+
+### 4. Render the component
 ```html
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="~/_content/GeoComponent/js/geoArtist.js"></script>
+@using GeoArtist.Contracts
+
+<!-- Map 1. Using inline TagHelper attribs, geoJson from vm -->
+<geo-map
+    map-id   = "map-1"
+    geo-json = "@Model.GeoJson"
+	height   = "400px"
+    include-assets = "true" />
+
+<!-- Map 2. Using explicit contract options objects -->
+@{  var mapOptions = new GeoMapOptions { MapId = "map-2", Height = "400px" };
+    var editorOptions = new GeoEditorOptions { SnapSensitivity = 10, UseGeoJsonTextArea = true }; }
+<geo-map
+	mode           = "editor"
+	map-options    = "@mapOptions"
+	editor-options = "@editorOptions"
+	include-assets = "true" />
+
+<!-- Map 3. Using default options -->
+<geo-map mode="editor" />
 ```
-```plain
-leaflet.css – Leaflet map styling.
-leaflet.js – Leaflet JavaScript map engine used for rendering and interaction.
-geoArtist.js – GeoComponent rendering layer. Map initialization, geometry rendering, dynamic updates.
-```
+`mode="editor"` is used to enable interactive editing (Leaflet-Geoman tools + component's editor pipeline).
+
 #
- 
+ 
 
-# Rendering a Map
-Import component models in the Razor view:
+# Asset Loading
+By default the component automatically emits the required CSS/JS assets:
+- Leaflet CSS/JS
+- GeoArtist CSS/JS
+- Geoman CSS/JS  (if editor mode)
 
-```java
-@using GeoComponent.Models
-```
+Multiple component instances on one page:
+- It's safe to use `include-assets="true"` on all instances. Duplicates are filtered automatically per HTTP request.
+- Note that asset tags are still taken from the render result of each instance. Map mode doesn't include Geoman paths, so at least one editor instance on the page must keep `include-assets="true"` to get Geoman loaded.
 
-Render map component:
-```java
-@await Component.InvokeAsync("GeoMap", new {
-    model = new GeoMap()
-})
-```
-Map container will be created automatically by the component with default *options*.
 #
- 
+ 
 
+# Map and editor modes
+| Mode | Use case | Runtime/asset profile |
+| - | - | - |
+| **Map** | Display-only GeoJSON visualization | Lightweight profile. Leaflet + GeoArtist map runtime |
+| **Editor** | Interactive drawing and geometry editing | Heavier profile. Adds Geoman CSS, JS and editor-specific pipeline |
+
+#
+ 
+ 
 # GeoMapOptions
-**GeoMapOptions** controls map appearance and behavior.
+GeoMapOptions control map layout, Leaflet view, basic styling, and optional coordinate reprojection for the GeoArtist component.
 Providing options is not strictly required. Default values will be used for omitted options.
-
-#### Available options
-| option | desciption |
-| - | - |
-| MapId | Uninque HTML id for the map container. UUIDv4 by default. |
-| Height | CSS height of the map container. |
-| InitialLat | Initial latitude used when the map is created. |
-| InitialLng | Initial longitude used when the map is created.|
-| InitialZoom | Initial zoom level. |
-| FitBounds | Automatically adjusts map view to fit rendered geometry. |
-| PolygonColor | Polygon border color. |
-| PolygonOpacity | Polygon opacity. |
-| ShowTileLayer | Enables or disables the OpenStreetMap tile layer. |
-| TileLayerUrl | Tile provider URL template. |
-| TileLayerAttribution | Tile provider attribution text. |
 #
- 
+ 
+ 
+# GeoEditorOptions
+GeoEditorOptions define Geoman editor settings, available tools, edit modes, map/drawing behavior, UI scaling, synced GeoJSON textarea control.
+Providing options is not strictly required. Default values will be used for omitted options. These settings apply when the component runs in editor mode (`mode="editor"` or `RenderEditorAsync`).
+#
+ 
+ 
+# JavaScript Runtime API
+The component exposes runtime methods on `window.GeoArtist`:
 
-# Using Geometry Facade
-**GeoComponent** provides a **Facade API** that simplifies geometry parsing and map creation.
+```js
+window.GeoArtist.UpdateGeoJson(geoJson);
+window.GeoArtist.UpdateMapOptions(options);
+window.GeoArtist.UpdateEditorOptions(options);
+window.GeoArtist.ClearGeoJson();
+```
+The map instance is reused between updates.
 
-Example usage inside a controller:
+#
+ 
+
+# Desktop Hosting
+
+GeoArtist provides `GeoDesktopWebViewAdapter` and `WebViewHostBridge` in `GeoArtist.Hosting.Desktop` so a desktop host can drive WebView2 without reimplementing virtual-host setup, `host.html` navigation, or render messaging.
+
+## Installation
+### 1. Add project reference
+```xml
+<ProjectReference Include="..\GeoArtist\GeoArtist.csproj" />
+```
+
+### 2. Register services
 ```csharp
-using GeoComponent.Facade.Interfaces;
-public class HomeController : Controller
-{
-    private readonly IGeoComponentFacade geo;
+using GeoArtist;
+using Microsoft.Extensions.DependencyInjection;
 
-    public HomeController(IGeoComponentFacade geo)
+var services = new ServiceCollection();
+services.AddGeoArtistDesktop(options =>
+{
+    // Optional host customization
+    // options.HostName = "geoartist.local";
+});
+using var serviceProvider = services.BuildServiceProvider();
+```
+
+### 3. Create the adapter on your main form
+Inject the IServiceProvider into your main window and initialize the GeoDesktopWebViewAdapter using your WebView2 control instance.
+```csharp
+using GeoArtist.Contracts;
+using GeoArtist.Hosting.Desktop;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Web.WebView2.WinForms;
+
+public partial class Form : Form
+{
+    private readonly GeoDesktopWebViewAdapter _geoAdapter;
+
+    public Form(IServiceProvider services)
     {
-        this.geo = geo;
+        InitializeComponent();
+
+        // Resolve dependencies and bind to the WebView2 control
+        var bridge = services.GetRequiredService<WebViewHostBridge>();
+        var hostOptions = services.GetRequiredService<GeoDesktopHostOptions>();
+        _geoAdapter = new GeoDesktopWebViewAdapter(webView, bridge, hostOptions);
+    }
+}
+```
+
+### 4. Initialize the host page
+After the form is constructed, before the first render:
+```csharp
+private async void Form_Load(object? sender, EventArgs e)
+{
+    await _geoAdapter.EnsureReadyAsync();
+}
+```
+
+### 5. Render the map
+The adapter provides two methods to update the UI. Each call sends a fresh payload to the existing `host.html` and triggers `GeoArtist.initialize`, which rebuilds the layers or editor state from the supplied GeoJSON.
+```csharp
+private async Task ShowMapAsync()
+{
+    var mapOptions = new GeoMapOptions { MapId = "map-1", Height = "100%" };
+    await _geoAdapter.RenderMapAsync("""{"type":"FeatureCollection","features":[]}""", mapOptions);
+}
+
+private async Task ShowEditorAsync()
+{
+    var mapOptions = new GeoMapOptions();
+    var editorOptions = new GeoEditorOptions { SnapSensitivity = 10, UseGeoJsonTextArea = true };
+    await _geoAdapter.RenderEditorAsync("""{"type":"FeatureCollection","features":[]}""", mapOptions, editorOptions);
+}
+```
+
+> The WebView document stays loaded for the lifetime of the host page. Each call refreshes the Leaflet layers from the payload and, in editor mode, rebuilds editor state—without navigating away from `host.html`.
+
+### 6. Disposal
+```csharp
+protected override void Dispose(bool disposing)
+{
+    if (disposing)
+    {
+        // Cleanup the adapter and its internal WebView2 hooks
+        _geoAdapter.Dispose();
+
+        // Standard WinForms container for non-visual components (Timer, ImageList, etc.)
+        components?.Dispose();
     }
 
-    public IActionResult Index()
-    {
-        var map = geo.MapFromGeoJson(geoJson);
-        return View(map);
-    }
-}
-```
-
-The facade handles:
-- Geometry parsing
-- SRID transformation
-- GeoJSON generation
-- Map model creation
-#
- 
-
-# API Usage
-GeoComponent can also be used through API endpoints.
-
-### Request Models
-```js
-// Parse a single GeoJSON geometry
-POST /api/geo/geojson
-{
-    "geoJson": "{ \"type\":\"Polygon\", \"coordinates\":[...] }"
-}
-
-// Parse a batch of GeoJSON geometries
-POST /api/geo/geojson/batch
-{
-    "geoJsonList":
-    [
-         "{ \"type\":\"Polygon\", \"coordinates\":[...] }",
-         "{ \"type\":\"Polygon\", \"coordinates\":[...] }"
-    ]
-}
-
-// Parse a single WKT geometry
-POST /api/geo/wkt
-{
-    "wkt": "MULTIPOLYGON(((...)))",
-    "srid": int
-}
-
-// Parse a batch of WKT geometries
-POST /api/geo/wkt/batch
-{
-    "wkt":
-    [
-        "POLYGON((...))",
-        "MULTIPOLYGON(((...)))",
-    ]
-    "srid": int
-}
-```
-
-### Response Models
-```js
-// GeoDataResponse
-{
-    "geometryType": string,
-    "coordinateCount": number,
-    "geoJson": string,
-    "isValid": boolean
-}
-
-// ApiErrorResponse
-{
-    "error": string,
-    "details": string
+    base.Dispose(disposing);
 }
 ```
 #
- 
 
-# JavaScript Rendering
-Geometry rendering is performed on the client side.
+## Asset management & build workflow
 
-The component exposes a JavaScript API:
-```js
-window.geoComponent.renderMap(geoArray, options)
-```
+The desktop adapter maps a virtual HTTPS origin to the `wwwroot` folder next to the **host** executable (`AppContext.BaseDirectory`).
 
-Example structure of geoArray:
-```js
-geoArray = [
-    {
-        geoJson: "{ ... }"
-    }
-]
-```
+#### How assets are served
 
-The map instance is created once and reused for subsequent rendering calls.
-New geometries replace the existing layer without recreating the map.
+- **Source:** static files ship with the `GeoArtist` project under `GeoArtist/wwwroot/`.
+- **Deployment:** building the host copies them into its output directory, usually `bin/<Configuration>/<TargetFramework>/wwwroot/` (for WebView2 on Windows, `<TargetFramework>` is a `*-windows` TFM).
+- **Runtime:** WebView2 loads `host.html` and dependencies from that output folder, not from the GeoArtist source tree.
+
+#### Data flow
+Server-side C# builds a `GeoArtistPayload` JSON in memory. `WebViewHostBridge` wraps it; `GeoDesktopWebViewAdapter` sends it with `CoreWebView2.PostWebMessageAsJson` to the page loaded from `host.html` when `RenderMapAsync` or `RenderEditorAsync` runs.
 #
- 
-# Demo App
-The repository includes a demo application called WebView.
+ 
 
-It demonstrates:
-- API endpoints
-- Geometry processing
-- Map rendering
-- Interactive demo tools
-#
- 
 # Used Frameworks and Libraries
 - ASP.NET Core
-- Razor ViewComponents
+- Razor (`TagHelper`, `ViewComponent`)
 - NetTopologySuite
+- ProjNET
 - Leaflet
+- Leaflet-Geoman
 - OpenStreetMap
 #
- 

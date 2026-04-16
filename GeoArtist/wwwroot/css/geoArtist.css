@@ -1,0 +1,29 @@
+.geoartist-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+}
+
+.geoartist-map {
+    width: 100%;
+    min-height: 300px;
+}
+
+.geoartist-geojson-output {
+    width: 100%;
+    min-height: 180px;
+    resize: vertical;
+
+    font-family: Consolas, monospace;
+    font-size: 13px;
+
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.geoartist-geojson-output[data-geoartist-invalid="true"] {
+    border: 1px solid #c62828;
+    background: rgba(198, 40, 40, 0.04);
+}
