@@ -63,6 +63,10 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\docs\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
     <Compile Remove="Hosting/Desktop/GeoDesktopWebViewAdapter.cs" />
   </ItemGroup>
