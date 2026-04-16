@@ -11,7 +11,7 @@
     <Version>2.0.0</Version>
     <AssemblyTitle>GeoArtist</AssemblyTitle>
     <Product>GeoArtist</Product>
-    <Description>A plug-and-play .NET UI component for interactive GeoJSON viewing and editing on a map, with out-of-the-box support for ASP.NET Core and WinForms (WebView2). Built on Leaflet with Leaflet-Geoman for geometry editing.</Description>
+    <Description>A self-contained .NET UI component for interactive GeoJSON viewing and editing on a map, with out-of-the-box support for ASP.NET Core and WinForms (WebView2). Built on Leaflet with Leaflet-Geoman for geometry editing.</Description>
     <PackageId>GeoArtist</PackageId>
     <Authors>Tonkonto</Authors>
     <Copyright>Copyright (c) GeoArtist contributors</Copyright>
