@@ -5,9 +5,25 @@ The project is designed as a plug&play component with out-of-the-box support for
 - ASP.NET Core (`TagHelper` / `ViewComponent`)
 - WinForms Desktop (`WebView2`)
  
- 
-The repository contains:
 
+## Table of Contents
+- [Repository contents](#repository-contents)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Installation for ASP.NET Core](#installation-for-aspnet-core)
+- [Asset Loading](#asset-loading)
+- [Map and editor modes](#map-and-editor-modes)
+- [GeoMapOptions](#geomapoptions)
+- [GeoEditorOptions](#geoeditoroptions)
+- [JavaScript Runtime API](#javascript-runtime-api)
+- [Desktop Hosting](#desktop-hosting)
+  - [Installation](#installation)
+  - [Asset management & build workflow](#asset-management--build-workflow)
+- [Used Frameworks and Libraries](#used-frameworks-and-libraries)
+
+#
+
+# Repository contents
 | Project | Description |
 |-------|-------------|
 | **GeoArtist** | Production library: server-side GeoJSON handling, HTML/bootstrap rendering, modular JS runtime (Leaflet, Geoman) |
